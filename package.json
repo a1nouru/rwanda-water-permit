@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@hookform/resolvers": "^5.0.1",
+    "@radix-ui/react-dropdown-menu": "^2.1.7",
+    "class-variance-authority": "^0.7.1",
+    "react-hook-form": "^7.55.0",
+    "zod": "^3.24.3"
+  }
+}
