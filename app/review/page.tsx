@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Search, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Eye, Search, Clock, CheckCircle, XCircle, AlertCircle, ArrowUpDown } from "lucide-react";
 import { UserProfileButton } from "@/components/dashboard/user-profile-button";
 import Link from "next/link";
 
@@ -132,45 +132,74 @@ export default function ReviewerDashboard() {
     
     if (filteredApps.length === 0) {
       return (
-        <div className="text-center py-8 text-muted-foreground">
-          {filteredApps.length === 0 && applications.length > 0 ? "No applications match your filters" : emptyMessage}
+        <div className="flex min-h-[400px] flex-col items-center justify-center space-y-2 text-center">
+          <div className="text-muted-foreground">
+            {filteredApps.length === 0 && applications.length > 0 ? "No applications match your filters" : emptyMessage}
+          </div>
         </div>
       );
     }
 
     return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[120px]">Application ID</TableHead>
-            <TableHead>Applicant Name</TableHead>
-            <TableHead className="w-[140px]">Type</TableHead>
-            <TableHead className="w-[120px]">Date Received</TableHead>
-            <TableHead className="w-[130px]">SLA Status</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredApps.map((app) => (
-            <TableRow key={app.id}>
-              <TableCell className="font-medium">{app.id}</TableCell>
-              <TableCell>{app.applicantName}</TableCell>
-              <TableCell>{app.applicationType}</TableCell>
-              <TableCell>{app.dateReceived}</TableCell>
-              <TableCell>{getSLAStatus(app.daysRemaining)}</TableCell>
-              <TableCell>
-                <Link href={`/review/application/${app.id}`}>
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-4 w-4 mr-2" />
-                    {app.status === "submitted" ? "Review" : 
-                     app.status === "ready_for_final_review" ? "Final Review" : "View"}
-                  </Button>
-                </Link>
-              </TableCell>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[130px]">
+                <Button variant="ghost" className="h-auto p-0 font-medium justify-start">
+                  Application ID
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button variant="ghost" className="h-auto p-0 font-medium justify-start">
+                  Applicant Name
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead className="w-[140px]">
+                <Button variant="ghost" className="h-auto p-0 font-medium justify-start">
+                  Type
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead className="w-[120px]">
+                <Button variant="ghost" className="h-auto p-0 font-medium justify-start">
+                  Date Received
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead className="w-[130px]">
+                <Button variant="ghost" className="h-auto p-0 font-medium justify-start">
+                  SLA Status
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {filteredApps.map((app) => (
+              <TableRow key={app.id}>
+                <TableCell>{app.id}</TableCell>
+                <TableCell>{app.applicantName}</TableCell>
+                <TableCell>{app.applicationType}</TableCell>
+                <TableCell>{app.dateReceived}</TableCell>
+                <TableCell>{getSLAStatus(app.daysRemaining)}</TableCell>
+                <TableCell>
+                  <Link href={`/review/application/${app.id}`}>
+                    <Button size="sm" variant="ghost">
+                      <Eye className="h-4 w-4 mr-1" />
+                      {app.status === "submitted" ? "Review" : 
+                       app.status === "ready_for_final_review" ? "Final Review" : "View"}
+                    </Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     );
   };
 
@@ -186,9 +215,9 @@ export default function ReviewerDashboard() {
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Reviewer Dashboard</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <div className="space-y-1">
+              <h1 className="text-3xl font-bold tracking-tight">Reviewer Dashboard</h1>
+              <p className="text-muted-foreground">
                 Manage water permit applications and reviews
               </p>
             </div>
@@ -296,12 +325,12 @@ export default function ReviewerDashboard() {
             <TabsContent value="new_submissions" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>New Submissions</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-xl font-semibold">New Submissions</CardTitle>
+                  <CardDescription className="text-base">
                     Applications waiting for initial documentary review
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   <ApplicationTable 
                     applications={newSubmissions}
                     emptyMessage="No new submissions to review"
@@ -313,12 +342,12 @@ export default function ReviewerDashboard() {
             <TabsContent value="pending_inspection" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Pending Inspection</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-xl font-semibold">Pending Inspection</CardTitle>
+                  <CardDescription className="text-base">
                     Applications currently assigned to inspectors for site assessment
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   <ApplicationTable 
                     applications={pendingInspection}
                     emptyMessage="No applications pending inspection"
@@ -330,12 +359,12 @@ export default function ReviewerDashboard() {
             <TabsContent value="ready_for_final_review" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Ready for Final Review</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-xl font-semibold">Ready for Final Review</CardTitle>
+                  <CardDescription className="text-base">
                     Applications with completed inspections awaiting final recommendation
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   <ApplicationTable 
                     applications={readyForFinalReview}
                     emptyMessage="No applications ready for final review"
@@ -347,12 +376,12 @@ export default function ReviewerDashboard() {
             <TabsContent value="all_applications" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>All Applications</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-xl font-semibold">All Applications</CardTitle>
+                  <CardDescription className="text-base">
                     Comprehensive view of all applications assigned to you
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   <ApplicationTable 
                     applications={mockApplications}
                     emptyMessage="No applications found"

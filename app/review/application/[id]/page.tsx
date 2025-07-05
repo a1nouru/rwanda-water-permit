@@ -139,287 +139,314 @@ export default function ReviewApplicationPage() {
 
   return (
     <DashboardLayout>
-      <UserProfileButton />
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="container mx-auto px-4 py-6"
-      >
-        {/* Header */}
-        <div className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <Link href="/review">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-3xl font-bold tracking-tight">
-                Application {mockApplication.id}
-              </h1>
-              {getStatusBadge(mockApplication.status)}
+      <div className="flex justify-end p-6">
+        <UserProfileButton />
+      </div>
+      
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-6 pb-8"
+        >
+          {/* Header */}
+          <div className="space-y-6">
+            <div className="flex items-center">
+              <Link href="/review">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Dashboard
+                </Button>
+              </Link>
             </div>
-            <p className="text-muted-foreground">
-              Submitted by {mockApplication.applicantName} on {mockApplication.dateReceived}
-            </p>
-          </div>
-        </div>
-
-        {/* Main Content with Tabs */}
-        <Tabs defaultValue="application_details" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="application_details">Application Details</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="internal_notes">Internal Notes & History</TabsTrigger>
-          </TabsList>
-
-          {/* Application Details Tab */}
-          <TabsContent value="application_details" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Application Information */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Applicant Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Name</Label>
-                        <p className="text-sm font-medium">{mockApplication.applicantName}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Email</Label>
-                        <p className="text-sm font-medium">{mockApplication.applicantEmail}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Application Type</Label>
-                        <p className="text-sm font-medium">{mockApplication.applicationType}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Location</Label>
-                        <p className="text-sm font-medium">{mockApplication.location}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Project Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Water Source</Label>
-                        <p className="text-sm font-medium">{mockApplication.waterSource}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Intended Use</Label>
-                        <p className="text-sm font-medium">{mockApplication.intendedUse}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Requested Volume</Label>
-                        <p className="text-sm font-medium">{mockApplication.requestedVolume}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Coordinates</Label>
-                        <p className="text-sm font-medium">
-                          {mockApplication.coordinates.latitude}, {mockApplication.coordinates.longitude}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-500">Project Description</Label>
-                        <p className="text-sm">{mockApplication.projectDescription}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Application {mockApplication.id}
+                </h1>
+                {getStatusBadge(mockApplication.status)}
               </div>
+              <p className="text-muted-foreground">
+                Submitted by {mockApplication.applicantName} on {mockApplication.dateReceived}
+              </p>
+            </div>
+          </div>
 
-              {/* Action Panel */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Review Actions</CardTitle>
-                    <CardDescription>
-                      Take action on this application
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button 
-                      onClick={handleApproveForInspection}
-                      className="w-full"
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      Approve for Inspection
-                    </Button>
-                    
-                    <Button 
-                      onClick={handleReturnForRevision}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Return for Revision
-                    </Button>
+          {/* Main Content with Tabs */}
+          <Tabs defaultValue="application_details" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="application_details">Application Details</TabsTrigger>
+              <TabsTrigger value="documents">Documents</TabsTrigger>
+              <TabsTrigger value="internal_notes">Internal Notes & History</TabsTrigger>
+            </TabsList>
 
+            {/* Application Details Tab */}
+            <TabsContent value="application_details" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Application Information */}
+                <div className="lg:col-span-2 space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Applicant Information</CardTitle>
+                      <CardDescription>
+                        Details about the applicant submitting this water permit request
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Name</Label>
+                          <p className="text-sm">{mockApplication.applicantName}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                          <p className="text-sm">{mockApplication.applicantEmail}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Application Type</Label>
+                          <p className="text-sm">{mockApplication.applicationType}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Location</Label>
+                          <p className="text-sm">{mockApplication.location}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Project Details</CardTitle>
+                      <CardDescription>
+                        Technical specifications and project information
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Water Source</Label>
+                          <p className="text-sm">{mockApplication.waterSource}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Intended Use</Label>
+                          <p className="text-sm">{mockApplication.intendedUse}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Requested Volume</Label>
+                          <p className="text-sm">{mockApplication.requestedVolume}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Coordinates</Label>
+                          <p className="text-sm font-mono">
+                            {mockApplication.coordinates.latitude}, {mockApplication.coordinates.longitude}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-muted-foreground">Project Description</Label>
+                          <p className="text-sm leading-6">{mockApplication.projectDescription}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Action Panel */}
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Review Actions</CardTitle>
+                      <CardDescription>
+                        Take action on this application
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        <Button 
+                          onClick={handleApproveForInspection}
+                          className="w-full gap-2"
+                        >
+                          <Check className="h-4 w-4" />
+                          Approve for Inspection
+                        </Button>
+                        
+                        <Button 
+                          onClick={handleReturnForRevision}
+                          variant="outline"
+                          className="w-full gap-2"
+                        >
+                          <X className="h-4 w-4" />
+                          Return for Revision
+                        </Button>
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium">Transfer Application</Label>
+                        <Select value={selectedAction} onValueChange={setSelectedAction}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select reviewer..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="reviewer1">John Smith</SelectItem>
+                            <SelectItem value="reviewer2">Sarah Johnson</SelectItem>
+                            <SelectItem value="reviewer3">Michael Brown</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button 
+                          onClick={handleTransferApplication}
+                          variant="secondary"
+                          className="w-full"
+                          disabled={!selectedAction}
+                        >
+                          Transfer Application
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Application Timeline</CardTitle>
+                      <CardDescription>
+                        Progress through review stages
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <CheckCircle className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm font-medium">Submitted</p>
+                            <p className="text-xs text-muted-foreground">{mockApplication.dateReceived}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm text-muted-foreground">Under Review</p>
+                            <p className="text-xs text-muted-foreground">Pending</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm text-muted-foreground">Inspection</p>
+                            <p className="text-xs text-muted-foreground">Pending</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Documents Tab */}
+            <TabsContent value="documents" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Uploaded Documents</CardTitle>
+                  <CardDescription>
+                    Documents submitted with this application
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {mockApplication.documents.map((doc, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium">{doc.name}</p>
+                            <p className="text-xs text-muted-foreground">{doc.type} • {doc.size} • Uploaded {doc.uploadDate}</p>
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline" className="gap-2">
+                          <Download className="h-4 w-4" />
+                          Download
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Internal Notes Tab */}
+            <TabsContent value="internal_notes" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Internal Notes & History</CardTitle>
+                  <CardDescription>
+                    Comments are visible to all RWB staff
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Comments Display */}
+                  <div className="space-y-6">
+                    {comments.map((comment) => (
+                      <div key={comment.id} className="flex gap-4">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="text-xs">{comment.avatar}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{comment.author}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {comment.role}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">{comment.timestamp}</span>
+                          </div>
+                          <p className="text-sm leading-6 text-muted-foreground">
+                            {comment.content}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="pt-6">
+                  <div className="w-full space-y-4">
                     <Separator />
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Transfer Application</Label>
-                      <Select value={selectedAction} onValueChange={setSelectedAction}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select reviewer..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="reviewer1">John Smith</SelectItem>
-                          <SelectItem value="reviewer2">Sarah Johnson</SelectItem>
-                          <SelectItem value="reviewer3">Michael Brown</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="space-y-3">
+                      <Label htmlFor="new-note" className="text-sm font-medium">Add a new note</Label>
+                      <Textarea
+                        id="new-note"
+                        placeholder="Type your internal note here..."
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                    <div className="flex justify-end">
                       <Button 
-                        onClick={handleTransferApplication}
-                        variant="secondary"
-                        className="w-full"
-                        disabled={!selectedAction}
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim()}
+                        className="gap-2"
                       >
-                        Transfer Application
+                        <Send className="h-4 w-4" />
+                        Post Note
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Timeline</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-primary"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Submitted</p>
-                        <p className="text-xs text-muted-foreground">{mockApplication.dateReceived}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-muted"></div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Under Review</p>
-                        <p className="text-xs text-muted-foreground">Pending</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-muted"></div>
-                      <div className="flex-1">
-                        <p className="text-sm text-muted-foreground">Inspection</p>
-                        <p className="text-xs text-muted-foreground">Pending</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Documents Tab */}
-          <TabsContent value="documents" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Uploaded Documents</CardTitle>
-                <CardDescription>
-                  Documents submitted with this application
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {mockApplication.documents.map((doc, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-blue-500" />
-                        <div>
-                          <p className="font-medium">{doc.name}</p>
-                          <p className="text-sm text-gray-500">{doc.type} • {doc.size} • Uploaded {doc.uploadDate}</p>
-                        </div>
-                      </div>
-                      <Button size="sm" variant="outline">
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Internal Notes Tab */}
-          <TabsContent value="internal_notes" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Internal Notes & History</CardTitle>
-                <CardDescription>
-                  Comments are visible to all RWB staff
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Comments Display */}
-                <div className="space-y-4">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs">{comment.avatar}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">{comment.author}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {comment.role}
-                          </Badge>
-                          <span className="text-xs text-gray-500">{comment.timestamp}</span>
-                        </div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
-                          {comment.content}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <Separator />
-              </CardContent>
-              
-              <CardFooter className="flex flex-col space-y-4">
-                <div className="w-full space-y-2">
-                  <Label htmlFor="new-note">Add a new note</Label>
-                  <Textarea
-                    id="new-note"
-                    placeholder="Type your internal note here..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    className="min-h-[100px]"
-                  />
-                </div>
-                <div className="flex justify-end w-full">
-                  <Button 
-                    onClick={handleAddComment}
-                    disabled={!newComment.trim()}
-                    className="flex items-center gap-2"
-                  >
-                    <Send className="h-4 w-4" />
-                    Post Note
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </motion.div>
+                  </div>
+                </CardFooter>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+      </div>
     </DashboardLayout>
   );
 } 
