@@ -122,18 +122,22 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
   )
 }
 
-function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
+const FormDescription = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
   const { formDescriptionId } = useFormField()
 
   return (
-    <p
-      data-slot="form-description"
+    <div
+      ref={ref}
       id={formDescriptionId}
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   )
-}
+})
+FormDescription.displayName = "FormDescription"
 
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField()

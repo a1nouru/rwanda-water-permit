@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,8 +13,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, Download, AlertCircle } from "lucide-react";
+import { Eye, Download, AlertCircle, Search } from "lucide-react";
 import Link from "next/link";
 
 export interface Permit {
@@ -32,10 +42,29 @@ interface PermitsListProps {
 }
 
 export function PermitsList({ permits }: PermitsListProps) {
-  const activePermits = permits.filter(permit => 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Filter permits based on search and filters
+  const filteredPermits = useMemo(() => {
+    return permits.filter((permit) => {
+      const matchesSearch = 
+        permit.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        permit.permitNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        permit.location.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesType = typeFilter === "all" || permit.type.toLowerCase() === typeFilter.toLowerCase();
+      const matchesStatus = statusFilter === "all" || permit.status.toLowerCase() === statusFilter.toLowerCase();
+      
+      return matchesSearch && matchesType && matchesStatus;
+    });
+  }, [permits, searchQuery, typeFilter, statusFilter]);
+
+  const activePermits = filteredPermits.filter(permit => 
     permit.status === "active" || permit.status === "expiring-soon"
   );
-  const expiredPermits = permits.filter(permit => permit.status === "expired");
+  const expiredPermits = filteredPermits.filter(permit => permit.status === "expired");
   
   // Function to get the appropriate badge color based on permit status
   const getStatusBadge = (status: string, expiryDate: string) => {
@@ -102,63 +131,71 @@ export function PermitsList({ permits }: PermitsListProps) {
 
   const renderPermitsTable = (permitsList: Permit[]) => {
     return (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Permit Number</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Issue Date</TableHead>
-            <TableHead>Expiration</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {permitsList.length > 0 ? (
-            permitsList.map((permit) => (
-              <TableRow key={permit.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                <TableCell className="font-medium">{permit.permitNumber}</TableCell>
-                <TableCell>{permit.title}</TableCell>
-                <TableCell>{permit.type}</TableCell>
-                <TableCell>{formatDate(permit.issueDate)}</TableCell>
-                <TableCell>
-                  <span className={`text-sm ${
-                    permit.status === "expired" 
-                      ? "text-red-600" 
-                      : getDaysUntilExpiry(permit.expiryDate) <= 30 
-                        ? "text-amber-600" 
-                        : "text-green-600"
-                  }`}>
-                    {formatExpiryTime(permit.expiryDate)}
-                  </span>
-                </TableCell>
-                <TableCell>{getStatusBadge(permit.status, permit.expiryDate)}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Download className="h-4 w-4" />
-                      <span className="sr-only">Download</span>
-                    </Button>
-                    <Link href={`/dashboard/permit/${permit.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">View</span>
+      <div className="rounded-lg border border-gray-200 overflow-hidden">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow className="border-b border-gray-200">
+              <TableHead className="font-semibold text-gray-900 py-4 px-6">Permit Number</TableHead>
+              <TableHead className="font-semibold text-gray-900 py-4 px-6">Title</TableHead>
+              <TableHead className="font-semibold text-gray-900 py-4 px-6">Type</TableHead>
+              <TableHead className="font-semibold text-gray-900 py-4 px-6">Issue Date</TableHead>
+              <TableHead className="font-semibold text-gray-900 py-4 px-6">Expiration</TableHead>
+              <TableHead className="font-semibold text-gray-900 py-4 px-6">Status</TableHead>
+              <TableHead className="font-semibold text-gray-900 py-4 px-6 text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="bg-white">
+            {permitsList.length > 0 ? (
+              permitsList.map((permit) => (
+                <TableRow 
+                  key={permit.id} 
+                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                >
+                  <TableCell className="font-medium text-gray-900 py-4 px-6">{permit.permitNumber}</TableCell>
+                  <TableCell className="text-gray-700 py-4 px-6">{permit.title}</TableCell>
+                  <TableCell className="text-gray-700 py-4 px-6">{permit.type}</TableCell>
+                  <TableCell className="text-gray-700 py-4 px-6">{formatDate(permit.issueDate)}</TableCell>
+                  <TableCell className="py-4 px-6">
+                    <span className={`text-sm ${
+                      permit.status === "expired" 
+                        ? "text-red-600" 
+                        : getDaysUntilExpiry(permit.expiryDate) <= 30 
+                          ? "text-amber-600" 
+                          : "text-green-600"
+                    }`}>
+                      {formatExpiryTime(permit.expiryDate)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="py-4 px-6">{getStatusBadge(permit.status, permit.expiryDate)}</TableCell>
+                  <TableCell className="text-center py-4 px-6">
+                    <div className="flex justify-center gap-2">
+                      <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                        <Download className="h-4 w-4" />
+                        <span className="sr-only">Download</span>
                       </Button>
-                    </Link>
-                  </div>
+                      <Link href={`/dashboard/permit/${permit.id}`}>
+                        <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                          <Eye className="h-4 w-4" />
+                          <span className="sr-only">View</span>
+                        </Button>
+                      </Link>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  {permits.length === 0 
+                    ? "No permits found in this category."
+                    : "No permits match your current filters. Try adjusting your search or filters."
+                  }
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                No permits found in this category.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     );
   };
 
@@ -168,17 +205,57 @@ export function PermitsList({ permits }: PermitsListProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card>
+      <Card className="border-0 shadow-sm">
         <CardHeader className="px-6 pt-6 pb-3">
           <CardTitle>Your Permits</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-6">
           <Tabs defaultValue="active" className="w-full">
-            <div className="px-6">
+            <div className="mb-6">
               <TabsList className="grid w-[400px] grid-cols-2">
                 <TabsTrigger value="active">Active Permits ({activePermits.length})</TabsTrigger>
                 <TabsTrigger value="expired">Expired Permits ({expiredPermits.length})</TabsTrigger>
               </TabsList>
+            </div>
+            
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-6">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search permits..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">Filter by:</Label>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                    <SelectItem value="industrial">Industrial</SelectItem>
+                    <SelectItem value="agricultural">Agricultural</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="expiring-soon">Expiring Soon</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
             <TabsContent value="active" className="mt-0">

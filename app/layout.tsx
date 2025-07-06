@@ -19,16 +19,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <Header />
+      <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
-          forcedTheme="light"
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
+          <Header />
           <main>{children}</main>
+          <Footer />
         </ThemeProvider>
-        <Footer />
       </body>
     </html>
   );

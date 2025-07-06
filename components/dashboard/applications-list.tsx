@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -12,7 +13,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Eye, Search } from "lucide-react";
 import Link from "next/link";
 
 interface Application {
@@ -29,6 +39,25 @@ interface ApplicationsListProps {
 }
 
 export function ApplicationsList({ applications }: ApplicationsListProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Filter applications based on search and filters
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app) => {
+      const matchesSearch = 
+        app.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.location.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesType = typeFilter === "all" || app.type.toLowerCase() === typeFilter.toLowerCase();
+      const matchesStatus = statusFilter === "all" || app.status.toLowerCase() === statusFilter.toLowerCase();
+      
+      return matchesSearch && matchesType && matchesStatus;
+    });
+  }, [applications, searchQuery, typeFilter, statusFilter]);
+
   // Function to get the appropriate badge color based on application status
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -58,48 +87,97 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {applications.length > 0 ? (
-                applications.map((application, index) => (
-                  <TableRow key={application.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <TableCell className="font-medium">{application.id}</TableCell>
-                    <TableCell>{application.title}</TableCell>
-                    <TableCell>{application.type}</TableCell>
-                    <TableCell>{formatDate(application.date)}</TableCell>
-                    <TableCell>{application.location}</TableCell>
-                    <TableCell>{getStatusBadge(application.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/dashboard/application/${application.id}`}>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4 mr-1" /> View
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
+      <Card className="border-0 shadow-sm">
+        <CardContent className="p-6 space-y-4">
+          {/* Search and Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search applications..."
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Label className="text-sm whitespace-nowrap">Filter by:</Label>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="commercial">Commercial</SelectItem>
+                  <SelectItem value="industrial">Industrial</SelectItem>
+                  <SelectItem value="agricultural">Agricultural</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="rounded-lg border border-gray-200 overflow-hidden">
+            <Table>
+              <TableHeader className="bg-gray-50">
+                <TableRow className="border-b border-gray-200">
+                  <TableHead className="font-semibold text-gray-900 py-4 px-6">ID</TableHead>
+                  <TableHead className="font-semibold text-gray-900 py-4 px-6">Title</TableHead>
+                  <TableHead className="font-semibold text-gray-900 py-4 px-6">Type</TableHead>
+                  <TableHead className="font-semibold text-gray-900 py-4 px-6">Date</TableHead>
+                  <TableHead className="font-semibold text-gray-900 py-4 px-6">Location</TableHead>
+                  <TableHead className="font-semibold text-gray-900 py-4 px-6">Status</TableHead>
+                  <TableHead className="font-semibold text-gray-900 py-4 px-6 text-center">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+                            <TableBody className="bg-white">
+                {filteredApplications.length > 0 ? (
+                  filteredApplications.map((application) => (
+                  <TableRow 
+                    key={application.id} 
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                      <TableCell className="font-medium text-gray-900 py-4 px-6">{application.id}</TableCell>
+                      <TableCell className="text-gray-700 py-4 px-6">{application.title}</TableCell>
+                      <TableCell className="text-gray-700 py-4 px-6">{application.type}</TableCell>
+                      <TableCell className="text-gray-700 py-4 px-6">{formatDate(application.date)}</TableCell>
+                      <TableCell className="text-gray-700 py-4 px-6">{application.location}</TableCell>
+                      <TableCell className="py-4 px-6">{getStatusBadge(application.status)}</TableCell>
+                      <TableCell className="text-center py-4 px-6">
+                        <Link href={`/dashboard/application/${application.id}`}>
+                          <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                              ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                    No applications found. Create a new application to get started.
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                    {applications.length === 0 
+                      ? "No applications found. Create a new application to get started."
+                      : "No applications match your current filters. Try adjusting your search or filters."
+                    }
                   </TableCell>
                 </TableRow>
               )}
-            </TableBody>
-          </Table>
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </motion.div>
