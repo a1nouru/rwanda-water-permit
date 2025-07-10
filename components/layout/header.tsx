@@ -28,9 +28,10 @@ export function Header() {
   const isInspectionPage = pathname.startsWith('/inspection');
   const isReviewPage = pathname.startsWith('/review');
   const isAdminPage = pathname.startsWith('/admin');
+  const isApproverPage = pathname.startsWith('/approver');
 
   // Helper to check if we should hide the Apply button
-  const shouldHideApplyButton = isApplyPage || isLoginPage || isRegisterPage || isDashboardPage || isApplicationPage || isInspectionPage || isReviewPage || isAdminPage;
+  const shouldHideApplyButton = isApplyPage || isLoginPage || isRegisterPage || isDashboardPage || isApplicationPage || isInspectionPage || isReviewPage || isAdminPage || isApproverPage;
   
   return (
     <header className="py-4 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
@@ -102,20 +103,34 @@ export function Header() {
                 )}
               </motion.div>
             ))}
-            {/* Show admin link for staff users - in a real app, this would be based on user role */}
-            {(isDashboardPage || isInspectionPage || isReviewPage || isAdminPage) && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
-              >
-                <Link 
-                  href="/admin"
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
+            {/* Show admin and approver links for staff users - in a real app, this would be based on user role */}
+            {(isDashboardPage || isInspectionPage || isReviewPage || isAdminPage || isApproverPage) && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
                 >
-                  Admin Panel
-                </Link>
-              </motion.div>
+                  <Link 
+                    href="/admin"
+                    className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
+                  >
+                    Admin Panel
+                  </Link>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
+                >
+                  <Link 
+                    href="/approver"
+                    className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
+                  >
+                    Executive Dashboard
+                  </Link>
+                </motion.div>
+              </>
             )}
           </nav>
 
@@ -147,8 +162,8 @@ export function Header() {
                   HOME
                 </Button>
               </Link>
-            ) : isInspectionPage || isReviewPage || isAdminPage ? (
-              /* Show profile icon on inspection, review, and admin pages */
+            ) : isInspectionPage || isReviewPage || isAdminPage || isApproverPage ? (
+              /* Show profile icon on inspection, review, admin, and approver pages */
               <Link href="/dashboard/profile">
                 <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
                   <AvatarImage src={undefined} alt="Profile" />
@@ -235,15 +250,24 @@ export function Header() {
                     </Link>
                   );
                 })}
-                {/* Show admin link for staff users - in a real app, this would be based on user role */}
-                {(isDashboardPage || isInspectionPage || isReviewPage || isAdminPage) && (
-                  <Link 
-                    href="/admin"
-                    className="text-foreground hover:text-primary transition-colors text-base font-medium"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Admin Panel
-                  </Link>
+                {/* Show admin and approver links for staff users - in a real app, this would be based on user role */}
+                {(isDashboardPage || isInspectionPage || isReviewPage || isAdminPage || isApproverPage) && (
+                  <>
+                    <Link 
+                      href="/admin"
+                      className="text-foreground hover:text-primary transition-colors text-base font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Admin Panel
+                    </Link>
+                    <Link 
+                      href="/approver"
+                      className="text-foreground hover:text-primary transition-colors text-base font-medium"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Executive Dashboard
+                    </Link>
+                  </>
                 )}
                 <div className="pt-6 mt-6 border-t">
                   {isDashboardPage ? (
