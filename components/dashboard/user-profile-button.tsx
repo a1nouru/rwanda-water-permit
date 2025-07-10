@@ -26,14 +26,18 @@ export function UserProfileButton() {
         <DropdownMenuTrigger asChild>
           <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
             <AvatarImage src={user.image || undefined} alt={user.name} />
-            <AvatarFallback>{user.initials}</AvatarFallback>
+            <AvatarFallback>
+              <User className="h-5 w-5" />
+            </AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <div className="flex items-center justify-start gap-2 p-4">
             <Avatar className="h-9 w-9">
               <AvatarImage src={user.image || undefined} alt={user.name} />
-              <AvatarFallback>{user.initials}</AvatarFallback>
+              <AvatarFallback>
+                <User className="h-4 w-4" />
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col space-y-1 leading-none">
               <p className="font-medium">{user.name}</p>

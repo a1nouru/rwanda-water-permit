@@ -4,9 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
 
 const navItems = [
@@ -24,9 +25,12 @@ export function Header() {
   const isRegisterPage = pathname === "/register";
   const isDashboardPage = pathname.startsWith('/dashboard');
   const isApplicationPage = pathname.includes('/application');
+  const isInspectionPage = pathname.startsWith('/inspection');
+  const isReviewPage = pathname.startsWith('/review');
+  const isAdminPage = pathname.startsWith('/admin');
 
   // Helper to check if we should hide the Apply button
-  const shouldHideApplyButton = isApplyPage || isLoginPage || isRegisterPage || isDashboardPage || isApplicationPage;
+  const shouldHideApplyButton = isApplyPage || isLoginPage || isRegisterPage || isDashboardPage || isApplicationPage || isInspectionPage || isReviewPage || isAdminPage;
   
   return (
     <header className="py-4 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
@@ -98,6 +102,21 @@ export function Header() {
                 )}
               </motion.div>
             ))}
+            {/* Show admin link for staff users - in a real app, this would be based on user role */}
+            {(isDashboardPage || isInspectionPage || isReviewPage || isAdminPage) && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
+                <Link 
+                  href="/admin"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
+                >
+                  Admin Panel
+                </Link>
+              </motion.div>
+            )}
           </nav>
 
           {/* CTA Button */}
@@ -127,6 +146,16 @@ export function Header() {
                 <Button variant="outline" className="rounded-full px-6">
                   HOME
                 </Button>
+              </Link>
+            ) : isInspectionPage || isReviewPage || isAdminPage ? (
+              /* Show profile icon on inspection, review, and admin pages */
+              <Link href="/dashboard/profile">
+                <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
+                  <AvatarImage src={undefined} alt="Profile" />
+                  <AvatarFallback>
+                    <User className="h-5 w-5" />
+                  </AvatarFallback>
+                </Avatar>
               </Link>
             ) : (
               <Link href="/apply">
@@ -206,6 +235,16 @@ export function Header() {
                     </Link>
                   );
                 })}
+                {/* Show admin link for staff users - in a real app, this would be based on user role */}
+                {(isDashboardPage || isInspectionPage || isReviewPage || isAdminPage) && (
+                  <Link 
+                    href="/admin"
+                    className="text-foreground hover:text-primary transition-colors text-base font-medium"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Admin Panel
+                  </Link>
+                )}
                 <div className="pt-6 mt-6 border-t">
                   {isDashboardPage ? (
                     /* On dashboard pages, show the profile link if not already in profile */
@@ -228,6 +267,9 @@ export function Header() {
                         HOME
                       </Button>
                     </Link>
+                  ) : isInspectionPage || isReviewPage || isAdminPage ? (
+                    /* Hide button on inspection, review, and admin pages */
+                    null
                   ) : (
                     <Link href="/apply" onClick={() => setIsOpen(false)}>
                       <Button className="w-full bg-primary hover:bg-primary/90 rounded-full mt-4">

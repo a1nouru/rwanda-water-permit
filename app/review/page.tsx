@@ -18,7 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Eye, Search, Clock, CheckCircle, XCircle, AlertCircle, ArrowUpDown } from "lucide-react";
-import { UserProfileButton } from "@/components/dashboard/user-profile-button";
 import Link from "next/link";
 
 // Mock data for applications in different stages
@@ -205,7 +204,6 @@ export default function ReviewerDashboard() {
 
   return (
     <DashboardLayout>
-      <UserProfileButton />
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
