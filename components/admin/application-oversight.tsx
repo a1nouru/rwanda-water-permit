@@ -42,7 +42,6 @@ interface Application {
   waterSource: string;
   location: string;
   status: "submitted" | "under_review" | "pending_inspection" | "approved" | "rejected" | "revision_required";
-  priority: "low" | "medium" | "high" | "urgent";
   submittedDate: string;
   lastUpdated: string;
   assignedReviewer?: string;
@@ -62,7 +61,6 @@ const mockApplications: Application[] = [
     waterSource: "Borehole",
     location: "Kigali, Gasabo",
     status: "submitted",
-    priority: "medium",
     submittedDate: "2024-03-22",
     lastUpdated: "2024-03-22",
     slaStatus: "on_time",
@@ -77,7 +75,6 @@ const mockApplications: Application[] = [
     waterSource: "Surface Water",
     location: "Musanze, Northern Province",
     status: "under_review",
-    priority: "high",
     submittedDate: "2024-03-18",
     lastUpdated: "2024-03-21",
     assignedReviewer: "Sarah Johnson",
@@ -93,7 +90,6 @@ const mockApplications: Application[] = [
     waterSource: "River",
     location: "Nyagatare, Eastern Province",
     status: "pending_inspection",
-    priority: "high",
     submittedDate: "2024-03-15",
     lastUpdated: "2024-03-20",
     assignedReviewer: "Michael Brown",
@@ -110,7 +106,6 @@ const mockApplications: Application[] = [
     waterSource: "Lake",
     location: "Kigali, Nyarugenge",
     status: "approved",
-    priority: "urgent",
     submittedDate: "2024-03-10",
     lastUpdated: "2024-03-21",
     assignedReviewer: "Sarah Johnson",
@@ -127,7 +122,6 @@ const mockApplications: Application[] = [
     waterSource: "Groundwater",
     location: "Rusizi, Western Province",
     status: "revision_required",
-    priority: "medium",
     submittedDate: "2024-03-05",
     lastUpdated: "2024-03-19",
     assignedReviewer: "Michael Brown",
@@ -141,7 +135,6 @@ export function ApplicationOversight() {
   const [applications, setApplications] = useState(mockApplications);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [filterPriority, setFilterPriority] = useState("all");
   const [filterSLA, setFilterSLA] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
@@ -164,16 +157,7 @@ export function ApplicationOversight() {
     );
   };
 
-  const getPriorityBadge = (priority: Application["priority"]) => {
-    const priorityConfig = {
-      low: { label: "Low", variant: "secondary" as const },
-      medium: { label: "Medium", variant: "outline" as const },
-      high: { label: "High", variant: "default" as const },
-      urgent: { label: "Urgent", variant: "destructive" as const }
-    };
-    const config = priorityConfig[priority];
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
+
 
   const getSLABadge = (slaStatus: Application["slaStatus"], daysRemaining: number) => {
     if (slaStatus === "overdue") {
@@ -190,23 +174,14 @@ export function ApplicationOversight() {
                          app.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          app.applicationType.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || app.status === filterStatus;
-    const matchesPriority = filterPriority === "all" || app.priority === filterPriority;
     const matchesSLA = filterSLA === "all" || app.slaStatus === filterSLA;
-    return matchesSearch && matchesStatus && matchesPriority && matchesSLA;
+    return matchesSearch && matchesStatus && matchesSLA;
   });
 
   const handleReassignApplication = (applicationId: string, newReviewer: string) => {
     setApplications(applications.map(app => 
       app.id === applicationId 
         ? { ...app, assignedReviewer: newReviewer, lastUpdated: new Date().toISOString().split('T')[0] }
-        : app
-    ));
-  };
-
-  const handlePriorityChange = (applicationId: string, newPriority: Application["priority"]) => {
-    setApplications(applications.map(app => 
-      app.id === applicationId 
-        ? { ...app, priority: newPriority, lastUpdated: new Date().toISOString().split('T')[0] }
         : app
     ));
   };
@@ -321,18 +296,6 @@ export function ApplicationOversight() {
                 <SelectItem value="revision_required">Revision Required</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
             <Select value={filterSLA} onValueChange={setFilterSLA}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="SLA Status" />
@@ -355,7 +318,6 @@ export function ApplicationOversight() {
                   <TableHead>Applicant</TableHead>
                   <TableHead>Type & Source</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Priority</TableHead>
                   <TableHead>Assigned Staff</TableHead>
                   <TableHead>SLA Status</TableHead>
                   <TableHead>Value</TableHead>
@@ -390,7 +352,6 @@ export function ApplicationOversight() {
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(application.status)}</TableCell>
-                    <TableCell>{getPriorityBadge(application.priority)}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         {application.assignedReviewer && (
@@ -431,10 +392,6 @@ export function ApplicationOversight() {
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handlePriorityChange(application.id, "urgent")}>
-                            <AlertTriangle className="mr-2 h-4 w-4" />
-                            Mark as Urgent
-                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleReassignApplication(application.id, "New Reviewer")}>
                             <User className="mr-2 h-4 w-4" />
                             Reassign
@@ -484,7 +441,6 @@ export function ApplicationOversight() {
                   <h4 className="font-medium">Status & Timeline</h4>
                   <div className="space-y-1 text-sm text-muted-foreground">
                     <p>Current Status: {getStatusBadge(selectedApplication.status)}</p>
-                    <p>Priority: {getPriorityBadge(selectedApplication.priority)}</p>
                     <p>Submitted: {selectedApplication.submittedDate}</p>
                     <p>Last Updated: {selectedApplication.lastUpdated}</p>
                   </div>
