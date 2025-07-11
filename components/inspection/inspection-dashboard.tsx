@@ -41,10 +41,10 @@ export function InspectionDashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Inspection Dashboard</h1>
-          <p className="text-muted-foreground">
-            Manage water permit applications and track inspection progress
+        <div>
+          <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">Water Resource Inspection</h1>
+          <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">
+            Field inspection management and compliance monitoring
           </p>
         </div>
       </div>

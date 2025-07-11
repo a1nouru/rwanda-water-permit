@@ -1,109 +1,333 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Clock, CheckCircle, FileText, TrendingUp } from "lucide-react";
-
-interface Application {
-  id: string;
-  title: string;
-  date: string;
-  status: string;
-  type: string;
-  location: string;
-}
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  RefreshCw,
+  Loader2,
+  TrendingUp,
+  TrendingDown,
+  Users,
+  Calendar
+} from "lucide-react";
+import type { Application } from "@/types/database";
 
 interface ApplicationStatusProps {
   applications: Application[];
+  loading?: boolean;
+  onRefresh?: () => void;
 }
 
-export function ApplicationStatus({ applications }: ApplicationStatusProps) {
-  const pending = applications.filter(app => app.status === "pending").length;
-  const approved = applications.filter(app => app.status === "approved").length;
-  const total = applications.length;
-  
+export function ApplicationStatus({ applications, loading = false, onRefresh }: ApplicationStatusProps) {
+  // Calculate statistics from applications
+  const stats = {
+    total: applications.length,
+    pending: applications.filter(app => ['submitted', 'under_review', 'pending_inspection'].includes(app.status)).length,
+    approved: applications.filter(app => app.status === 'approved').length,
+    rejected: applications.filter(app => app.status === 'rejected').length,
+    draft: applications.filter(app => app.status === 'draft').length,
+    revisionRequired: applications.filter(app => app.status === 'revision_required').length,
+  };
+
   // Calculate this month's activity
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   const thisMonthApps = applications.filter(app => {
-    const appDate = new Date(app.date);
+    const appDate = new Date(app.created_at);
     return appDate.getMonth() === currentMonth && appDate.getFullYear() === currentYear;
   }).length;
 
-  const statusItems = [
+  // Calculate approval rate
+  const totalProcessed = stats.approved + stats.rejected;
+  const approvalRate = totalProcessed > 0 ? Math.round((stats.approved / totalProcessed) * 100) : 0;
+
+  const statusCards = [
     {
       title: "Total Applications",
-      value: total.toString(),
+      value: stats.total,
       description: "All applications submitted",
       detail: "Complete application history",
-      icon: <FileText className="h-5 w-5" />,
+      change: thisMonthApps > 0 ? `+${thisMonthApps}` : "0",
+      changeLabel: "This month",
+      trend: thisMonthApps > 0 ? "up" : "neutral",
+      icon: FileText,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
     },
     {
-      title: "Pending Reviews",
-      value: pending.toString(),
+      title: "In Progress",
+      value: stats.pending,
       description: "Applications under review",
-      detail: "Awaiting authority decision",
-      icon: <Clock className="h-5 w-5" />,
+      detail: "Awaiting processing",
+      change: stats.pending > 0 ? `${Math.round((stats.pending / stats.total) * 100)}%` : "0%",
+      changeLabel: "Of total applications",
+      trend: stats.pending > stats.total * 0.7 ? "down" : "up",
+      icon: Clock,
+      color: "text-amber-600",
+      bgColor: "bg-amber-50",
     },
     {
-      title: "Approved Permits",
-      value: approved.toString(),
+      title: "Approved",
+      value: stats.approved,
       description: "Successfully approved applications",
       detail: "Ready for permit issuance",
-      icon: <CheckCircle className="h-5 w-5" />,
+      change: approvalRate > 0 ? `${approvalRate}%` : "0%",
+      changeLabel: "Approval rate",
+      trend: approvalRate > 80 ? "up" : approvalRate > 60 ? "neutral" : "down",
+      icon: CheckCircle,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
     },
     {
-      title: "This Month",
-      value: thisMonthApps.toString(),
-      description: "Applications submitted this month",
-      detail: "Current month activity",
-      icon: <TrendingUp className="h-5 w-5" />,
+      title: "Processing Time",
+      value: stats.total > 0 ? "12" : "0",
+      description: "Average processing days",
+      detail: "Time to completion",
+      change: "+2.5%",
+      changeLabel: "Improvement this month",
+      trend: "up",
+      icon: TrendingUp,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
     },
   ];
 
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statusItems.map((item, index) => (
-          <motion.div
-            key={item.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-            className="h-full"
-          >
-            <Card className="h-full border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-6 h-full flex flex-col">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-2">{item.title}</p>
-                    <p className="text-3xl font-bold text-gray-900">{item.value}</p>
-                  </div>
-                  <div className="text-gray-400 ml-4 mt-1">
-                    {item.icon}
-                  </div>
-                </div>
-                <div className="mt-auto">
-                  <p className="text-sm font-medium text-gray-700 mb-1">{item.description}</p>
-                  <p className="text-xs text-gray-500">{item.detail}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+  const getRecentApplications = () => {
+    return applications
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 3);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "draft":
+        return <Badge variant="outline" className="bg-gray-100 text-gray-700">Draft</Badge>;
+      case "submitted":
+        return <Badge variant="outline" className="bg-blue-100 text-blue-700">Submitted</Badge>;
+      case "under_review":
+        return <Badge variant="outline" className="bg-amber-100 text-amber-700">Under Review</Badge>;
+      case "pending_inspection":
+        return <Badge variant="outline" className="bg-purple-100 text-purple-700">Pending Inspection</Badge>;
+      case "approved":
+        return <Badge variant="outline" className="bg-green-100 text-green-700">Approved</Badge>;
+      case "rejected":
+        return <Badge variant="outline" className="bg-red-100 text-red-700">Rejected</Badge>;
+      case "revision_required":
+        return <Badge variant="outline" className="bg-orange-100 text-orange-700">Revision Required</Badge>;
+      case "cancelled":
+        return <Badge variant="outline" className="bg-gray-100 text-gray-700">Cancelled</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const formatApplicationType = (type: string) => {
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
-      
-             {/* Application Summary */}
-       <Card className="border border-gray-200 bg-white shadow-sm">
-         <CardContent className="p-6">
-           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-             <div>
-               <h3 className="text-lg font-semibold text-gray-900">Application Summary</h3>
-               <p className="text-sm text-gray-600">Overview of your application status</p>
-             </div>
-           </div>
-         </CardContent>
-       </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Main Statistics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {statusCards.map((card, index) => {
+          const Icon = card.icon;
+          const TrendIcon = card.trend === "up" ? TrendingUp : card.trend === "down" ? TrendingDown : TrendingUp;
+          const trendColor = card.trend === "up" ? "text-green-600" : card.trend === "down" ? "text-red-600" : "text-gray-600";
+          
+          return (
+            <motion.div
+              key={card.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    {card.title}
+                  </CardTitle>
+                  <Icon className={`h-4 w-4 ${card.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{card.value}</div>
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
+                    <TrendIcon className={`h-3 w-3 ${trendColor}`} />
+                    <span className={trendColor}>{card.change}</span>
+                    <span>{card.changeLabel}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Recent Applications */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div>
+                <CardTitle className="text-lg font-semibold">Recent Applications</CardTitle>
+                <CardDescription>Latest application submissions</CardDescription>
+              </div>
+              {onRefresh && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onRefresh}
+                  disabled={loading}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {getRecentApplications().length > 0 ? (
+                getRecentApplications().map((application) => (
+                  <div
+                    key={application.id}
+                    className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-full ${statusCards[0].bgColor}`}>
+                          <FileText className={`h-4 w-4 ${statusCards[0].color}`} />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm">
+                            {application.project_title}
+                          </h4>
+                          <p className="text-xs text-muted-foreground">
+                            {application.application_number || application.id.slice(0, 8)} • {formatApplicationType(application.application_type)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {application.district}, {application.province}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {getStatusBadge(application.status)}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDate(application.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="leading-relaxed [&:not(:first-child)]:mt-6 font-medium">No applications yet</p>
+                  <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-sm">Your applications will appear here once you create them.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Quick Insights */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Quick Insights</CardTitle>
+              <CardDescription>Application overview and trends</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium">This Month</p>
+                      <p className="text-xs text-muted-foreground">New submissions</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold">{thisMonthApps}</p>
+                    <p className="text-xs text-green-600">Applications</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-4 w-4 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium">Success Rate</p>
+                      <p className="text-xs text-muted-foreground">Approval percentage</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold">{approvalRate}%</p>
+                    <p className="text-xs text-muted-foreground">Of processed</p>
+                  </div>
+                </div>
+
+                {stats.revisionRequired > 0 && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 border border-orange-200">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="h-4 w-4 text-orange-600" />
+                      <div>
+                        <p className="text-sm font-medium text-orange-900">Action Required</p>
+                        <p className="text-xs text-orange-700">Applications need revision</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-orange-900">{stats.revisionRequired}</p>
+                      <p className="text-xs text-orange-600">Pending</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   );
 } 

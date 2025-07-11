@@ -213,10 +213,12 @@ export default function ReviewerDashboard() {
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight">Reviewer Dashboard</h1>
-              <p className="text-muted-foreground">
-                Manage water permit applications and reviews
+            <div>
+              <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">
+                Application Review Dashboard
+              </h1>
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">
+                Review and assess water permit applications for technical compliance
               </p>
             </div>
           </div>

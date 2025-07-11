@@ -222,13 +222,13 @@ export default function ReviewApplicationPage() {
             
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold tracking-tight">
-                  Application {mockApplication.id}
+                <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">
+                  Application Review: {mockApplication.id}
                 </h1>
                 {getStatusBadge(mockApplication.status)}
               </div>
-              <p className="text-muted-foreground">
-                Submitted by {mockApplication.applicantName} on {mockApplication.dateReceived}
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">
+                Technical review and assessment of water permit application
               </p>
             </div>
           </div>

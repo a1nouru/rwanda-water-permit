@@ -99,18 +99,7 @@ export function PermitStatus({ permits }: PermitStatusProps) {
           </motion.div>
         ))}
       </div>
-      
-             {/* Permit Overview */}
-       <Card className="border border-gray-200 bg-white shadow-sm">
-         <CardContent className="p-6">
-           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-             <div>
-               <h3 className="text-lg font-semibold text-gray-900">Permit Overview</h3>
-               <p className="text-sm text-gray-600">Monitor your permit status and renewals</p>
-             </div>
-           </div>
-         </CardContent>
-       </Card>
+
     </div>
   );
 } 

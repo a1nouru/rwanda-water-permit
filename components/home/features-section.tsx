@@ -49,7 +49,7 @@ export function FeaturesSection() {
           className="text-center mb-16"
         >
           <div className="text-sm font-medium text-primary mb-3">SERVICE FEATURES</div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Rwanda Water Board Portal Services</h2>
+          <h2 className="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20 [&+p]:!mt-4 *:[code]:text-2xl mb-6">Rwanda Water Board Portal Services</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             The official Rwanda Water Board portal provides essential services for managing water resources. 
             Our platform ensures compliance with Rwanda's water regulations while offering a transparent process.

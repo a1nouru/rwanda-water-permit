@@ -426,7 +426,7 @@ export default function PermitDetailPage() {
       <DashboardLayout>
         <div className="container mx-auto px-4 py-6">
           <div className="text-center py-12">
-            <h2 className="text-2xl font-bold">Permit Not Found</h2>
+            <h2 className="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20 [&+p]:!mt-4 *:[code]:text-2xl">Permit Not Found</h2>
             <p className="text-muted-foreground mt-2">The permit you are looking for does not exist or has been removed.</p>
             <Button asChild className="mt-6">
               <Link href="/dashboard">Back to Dashboard</Link>
@@ -457,7 +457,7 @@ export default function PermitDetailPage() {
         >
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">{permit.title}</h1>
+              <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">{permit.title}</h1>
               {getStatusBadge(permit.status)}
             </div>
             <p className="text-muted-foreground">
@@ -598,7 +598,7 @@ export default function PermitDetailPage() {
                                     ? "text-red-800 dark:text-red-400" 
                                     : "text-gray-900 dark:text-white"
                             }`}>{inspection.status}</span>
-                            <p className="text-muted-foreground">{inspection.notes}</p>
+                            <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">{inspection.notes}</p>
                             <time className="mt-1 text-xs text-muted-foreground">{inspection.date}</time>
                           </div>
                         </li>

@@ -13,9 +13,9 @@ export default async function InspectionDetailPage({ params }: { params: Promise
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Inspection Details</h1>
-        <p className="text-muted-foreground mt-2">
-          View detailed inspection report and findings
+        <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">Inspection Details</h1>
+        <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">
+          View detailed information about this inspection
         </p>
       </div>
 

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 
 export function TypographyH1({ children }: { children: React.ReactNode }) {
   return (
-    <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
+    <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">
       {children}
     </h1>
   )
@@ -12,7 +12,7 @@ export function TypographyH1({ children }: { children: React.ReactNode }) {
 
 export function TypographyH2({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+    <h2 className="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20 [&+p]:!mt-4 *:[code]:text-2xl">
       {children}
     </h2>
   )
@@ -42,7 +42,7 @@ export function TypographyP({
   className?: string
 }) {
   return (
-    <p className={cn("leading-7 [&:not(:first-child)]:mt-6", className)}>
+    <p className={cn("leading-relaxed [&:not(:first-child)]:mt-6", className)}>
       {children}
     </p>
   )
@@ -82,7 +82,7 @@ export function TypographyInlineCode({ children }: { children: React.ReactNode }
 
 export function TypographyLead({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-muted-foreground text-xl">
+    <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground text-xl">
       {children}
     </p>
   )

@@ -34,8 +34,8 @@ export default function SettingsPage() {
         </div>
         
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold">Account Settings</h1>
-          <p className="text-muted-foreground">Manage your account preferences and settings</p>
+          <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">Account Settings</h1>
+          <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">Manage your account preferences and settings</p>
           
           <Tabs defaultValue="general" className="w-full">
             <TabsList className="w-full max-w-md grid grid-cols-4">

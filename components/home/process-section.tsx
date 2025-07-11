@@ -40,8 +40,8 @@ export function ProcessSection() {
           <span className="inline-block py-1 px-3 rounded-full bg-accent/20 text-accent-foreground text-sm font-medium mb-4">
             APPLICATION PROCESS
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 tracking-tight text-primary">
-            How to Apply
+          <h2 className="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20 [&+p]:!mt-4 *:[code]:text-2xl mb-6">
+            How to Apply for Your Water Permit
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
             Follow these steps to complete your water concession permit application through our official portal
@@ -70,7 +70,7 @@ export function ProcessSection() {
                   {step.number}
                 </motion.div>
                 <h3 className="text-xl font-semibold mb-3 text-primary">{step.title}</h3>
-                <p className="text-muted-foreground">{step.description}</p>
+                <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">{step.description}</p>
                 
                 {index < processSteps.length - 1 && (
                   <div className="hidden lg:flex absolute -right-3 top-6 z-10">

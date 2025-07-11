@@ -1,145 +1,224 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { ApplicationsList } from "@/components/dashboard/applications-list";
 import { ApplicationStatus } from "@/components/dashboard/application-status";
-import { PermitsList, Permit } from "@/components/dashboard/permits-list";
+import { PermitsList, Permit as PermitListItem } from "@/components/dashboard/permits-list";
 import { PermitStatus } from "@/components/dashboard/permits-status";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, FileCheck } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlusCircle, FileCheck, Loader2, AlertCircle, FileText, BarChart3, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import { useApplications } from "@/hooks/useApplications";
+import { usePermits } from "@/hooks/usePermits";
+import type { Permit as DatabasePermit } from "@/types/database";
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"applications" | "permits">("applications");
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   
-  // Mock data - in a real application, this would come from an API
-  const applications = [
-    {
-      id: "APP-001",
-      title: "Water Permit Application",
-      date: "2023-10-12",
-      status: "pending",
-      type: "Commercial",
-      location: "Kigali, Gasabo",
-    },
-    {
-      id: "APP-002",
-      title: "Water Permit Renewal",
-      date: "2023-09-05",
-      status: "approved",
-      type: "Industrial",
-      location: "Musanze, Northern Province",
-    },
-    {
-      id: "APP-003",
-      title: "Water Extraction Permit",
-      date: "2023-11-20",
-      status: "rejected",
-      type: "Agricultural",
-      location: "Nyagatare, Eastern Province",
-    },
-  ];
+  // Check for success parameters from URL
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const tab = searchParams.get('tab');
+    
+    if (success === 'application-created') {
+      setShowSuccessAlert(true);
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => setShowSuccessAlert(false), 5000);
+    }
+    
+    if (tab === 'applications') {
+      setActiveTab('applications');
+    } else if (tab === 'permits') {
+      setActiveTab('permits');
+    }
+  }, [searchParams]);
+  
+  // Fetch applications and permits (without user filtering for now)
+  const {
+    applications,
+    loading: applicationsLoading,
+    error: applicationsError,
+    refresh: refreshApplications
+  } = useApplications({
+    autoFetch: true
+  });
 
-  // Mock data for permits
-  const permits: Permit[] = [
-    {
-      id: "PER-001",
-      title: "Commercial Water Extraction",
-      issueDate: "2023-05-15",
-      expiryDate: "2025-05-15", // Valid for 2 years
-      status: "active",
-      type: "Commercial",
-      location: "Kigali, Gasabo",
-      permitNumber: "WP-2023-05-001",
-    },
-    {
-      id: "PER-002",
-      title: "Industrial Water Usage",
-      issueDate: "2022-11-10",
-      expiryDate: "2023-11-10", // Valid for 1 year - expired
-      status: "expired",
-      type: "Industrial",
-      location: "Musanze, Northern Province",
-      permitNumber: "WP-2022-11-002",
-    },
-    {
-      id: "PER-003",
-      title: "Agricultural Irrigation",
-      issueDate: "2023-08-25",
-      expiryDate: "2024-02-25", // Expires in less than 30 days
-      status: "expiring-soon",
-      type: "Agricultural",
-      location: "Nyagatare, Eastern Province",
-      permitNumber: "WP-2023-08-003",
-    },
-    {
-      id: "PER-004",
-      title: "Residential Water Supply",
-      issueDate: "2023-03-05",
-      expiryDate: "2024-03-05", // Expiring in about 3 months
-      status: "active",
-      type: "Residential",
-      location: "Rubavu, Western Province",
-      permitNumber: "WP-2023-03-004",
-    },
-    {
-      id: "PER-005",
-      title: "Mining Operation Water Usage",
-      issueDate: "2021-10-15",
-      expiryDate: "2023-10-15", // Recently expired
-      status: "expired",
-      type: "Industrial",
-      location: "Rulindo, Northern Province",
-      permitNumber: "WP-2021-10-005",
-    },
-  ];
+  const {
+    permits: databasePermits,
+    loading: permitsLoading,
+    error: permitsError,
+    refresh: refreshPermits
+  } = usePermits({
+    autoFetch: true
+  });
+
+  // Transform database permits to component format
+  const transformPermitForDisplay = (dbPermit: DatabasePermit): PermitListItem => {
+    // Calculate status based on expiry date
+    const now = new Date();
+    const expiryDate = new Date(dbPermit.expiry_date);
+    const thirtyDaysFromNow = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+    
+    let displayStatus: "active" | "expired" | "expiring-soon" = "active";
+    if (expiryDate < now) {
+      displayStatus = "expired";
+    } else if (expiryDate <= thirtyDaysFromNow) {
+      displayStatus = "expiring-soon";
+    }
+
+    return {
+      id: dbPermit.id,
+      title: `${dbPermit.purpose} Water Permit`, // Create a title from purpose
+      issueDate: dbPermit.issued_date,
+      expiryDate: dbPermit.expiry_date,
+      status: displayStatus,
+      type: dbPermit.purpose, // Use purpose as type
+      location: "N/A", // We'll need to get this from related application
+      permitNumber: dbPermit.permit_number,
+    };
+  };
+
+  const permits = databasePermits.map(transformPermitForDisplay);
+
+  const isLoading = applicationsLoading || permitsLoading;
+  const hasError = applicationsError || permitsError;
 
   return (
     <DashboardLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="container mx-auto px-4 py-6"
-      >
-        <div className="space-y-6">
-          <Tabs defaultValue="applications" onValueChange={(value) => setActiveTab(value as "applications" | "permits")}>
-            <div className="flex items-center justify-between mb-6">
-              <TabsList className="grid w-[400px] grid-cols-2">
-                <TabsTrigger value="applications">Applications</TabsTrigger>
-                <TabsTrigger value="permits">Permits</TabsTrigger>
-              </TabsList>
-              
-              {activeTab === "applications" ? (
-                <Link href="/dashboard/new-application">
-                  <Button className="flex items-center gap-2">
-                    <PlusCircle className="h-4 w-4" />
-                    New Application
-                  </Button>
-                </Link>
-              ) : (
-                <Button disabled className="flex items-center gap-2">
-                  <FileCheck className="h-4 w-4" />
-                  Manage Permits
-                </Button>
-              )}
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between space-y-2 mb-8">
+            <div>
+              <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">
+                Water Permit Dashboard
+              </h1>
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">
+                Manage your water permit applications and view permits
+              </p>
             </div>
+            <div className="flex items-center space-x-2">
+              <Link href="/dashboard/new-application">
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  New Application
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Success Alert */}
+          {showSuccessAlert && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Alert className="mb-6 border-green-200 bg-green-50">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  🎉 <strong>Application Created Successfully!</strong> Your water permit application has been saved as a draft. You can continue editing it or submit it for review.
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+
+          {/* Error handling */}
+          {hasError && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {applicationsError || permitsError}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Main Content */}
+          <Tabs defaultValue="applications" value={activeTab} onValueChange={(value) => setActiveTab(value as "applications" | "permits")} className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="applications" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Applications ({applications.length})
+              </TabsTrigger>
+              <TabsTrigger value="permits" className="flex items-center gap-2">
+                <FileCheck className="h-4 w-4" />
+                Permits ({permits.length})
+              </TabsTrigger>
+            </TabsList>
             
-            <TabsContent value="applications" className="space-y-6 mt-0">
-              <ApplicationStatus applications={applications} />
-              <ApplicationsList applications={applications} />
+            <TabsContent value="applications" className="space-y-4">
+              {/* Applications Status Overview */}
+              <ApplicationStatus 
+                applications={applications} 
+                loading={applicationsLoading}
+                onRefresh={refreshApplications}
+              />
+              
+              {/* Applications List */}
+              <div className="grid gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      All Applications
+                    </CardTitle>
+                    <CardDescription>
+                      View and manage your water permit applications
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ApplicationsList 
+                      applications={applications} 
+                      loading={applicationsLoading}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
             
-            <TabsContent value="permits" className="space-y-6 mt-0">
-              <PermitStatus permits={permits} />
-              <PermitsList permits={permits} />
+            <TabsContent value="permits" className="space-y-4">
+              {/* Permits Overview */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <PermitStatus permits={permits} />
+              </motion.div>
+              
+              {/* Permits List */}
+              <div className="grid gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileCheck className="h-5 w-5" />
+                      Active Permits
+                    </CardTitle>
+                    <CardDescription>
+                      View and manage your issued water permits
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <PermitsList permits={permits} />
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </DashboardLayout>
   );
 } 

@@ -22,7 +22,8 @@ import {
   Search,
   Scale,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Timer
 } from "lucide-react";
 
 interface FinalReviewApplication {
@@ -140,8 +141,16 @@ export function FinalDecisions() {
 
   const getRecommendationBadge = (recommendation: "approve" | "reject") => {
     return recommendation === "approve" 
-      ? <Badge variant="default" className="bg-green-100 text-green-800">Recommend Approve</Badge>
-      : <Badge variant="destructive" className="bg-red-100 text-red-800">Recommend Reject</Badge>;
+      ? (
+          <Badge variant="default">
+            Approve
+          </Badge>
+        )
+      : (
+          <Badge variant="destructive">
+            Reject
+          </Badge>
+        );
   };
 
   const filteredApplications = applications.filter(app => {
@@ -172,31 +181,27 @@ export function FinalDecisions() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h2 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+          <h2 className="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20 [&+p]:!mt-4 *:[code]:text-2xl">
             Final Approval Decisions
           </h2>
-          <p className="text-muted-foreground">
+          <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">
             Applications ready for your final decision after review and inspection
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Scale className="h-5 w-5 text-primary" />
-          <span className="text-sm font-medium">Executive Authority</span>
         </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Decisions</CardTitle>
-            <Clock className="h-4 w-4 text-orange-600" />
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{applications.length}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-xs text-muted-foreground">
               Awaiting final approval
             </p>
           </CardContent>
@@ -205,13 +210,13 @@ export function FinalDecisions() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">High Risk</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold">
               {applications.filter(app => app.riskLevel === "high").length}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-xs text-muted-foreground">
               Requires careful review
             </p>
           </CardContent>
@@ -220,29 +225,14 @@ export function FinalDecisions() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Avg Processing</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-600" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {Math.round(applications.reduce((sum, app) => sum + app.daysInSystem, 0) / applications.length)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-xs text-muted-foreground">
               Days in system
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {(applications.reduce((sum, app) => sum + app.estimatedValue, 0) / 1000000).toFixed(1)}M
-            </div>
-            <p className="text-xs text-muted-foreground">
-              RWF project value
             </p>
           </CardContent>
         </Card>
@@ -290,9 +280,7 @@ export function FinalDecisions() {
                   <TableHead>Application</TableHead>
                   <TableHead>Applicant</TableHead>
                   <TableHead>Type & Source</TableHead>
-                  <TableHead>Recommendations</TableHead>
-                  <TableHead>Risk Level</TableHead>
-                  <TableHead>Value</TableHead>
+                  <TableHead className="font-semibold">Recommendations</TableHead>
                   <TableHead>Processing Time</TableHead>
                   <TableHead className="text-right">Final Decision</TableHead>
                 </TableRow>
@@ -325,22 +313,22 @@ export function FinalDecisions() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-sm">
-                          <span className="text-xs text-muted-foreground">Reviewer: </span>
+                      <motion.div 
+                        className="space-y-3"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.1 }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-muted-foreground tracking-wide">Reviewer</span>
                           {getRecommendationBadge(application.reviewerRecommendation)}
                         </div>
-                        <div className="text-sm">
-                          <span className="text-xs text-muted-foreground">Inspector: </span>
+                        <div className="h-px bg-border/50 mx-2" />
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-muted-foreground tracking-wide">Inspector</span>
                           {getRecommendationBadge(application.inspectorRecommendation)}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getRiskBadge(application.riskLevel)}</TableCell>
-                    <TableCell>
-                      <div className="text-sm font-medium">
-                        {(application.estimatedValue / 1000000).toFixed(1)}M RWF
-                      </div>
+                      </motion.div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">{application.daysInSystem} days</div>
@@ -358,7 +346,6 @@ export function FinalDecisions() {
                         <Button
                           size="sm"
                           onClick={() => openDecisionDialog(application, "approve")}
-                          className="bg-green-600 hover:bg-green-700"
                         >
                           <CheckCircle2 className="h-4 w-4 mr-1" />
                           Approve
@@ -400,19 +387,19 @@ export function FinalDecisions() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Application ID:</span>
-                  <p>{selectedApplication.id}</p>
+                  <p className="leading-relaxed [&:not(:first-child)]:mt-6">{selectedApplication.id}</p>
                 </div>
                 <div>
                   <span className="font-medium">Applicant:</span>
-                  <p>{selectedApplication.applicantName}</p>
+                  <p className="leading-relaxed [&:not(:first-child)]:mt-6">{selectedApplication.applicantName}</p>
                 </div>
                 <div>
                   <span className="font-medium">Type:</span>
-                  <p>{selectedApplication.applicationType}</p>
+                  <p className="leading-relaxed [&:not(:first-child)]:mt-6">{selectedApplication.applicationType}</p>
                 </div>
                 <div>
-                  <span className="font-medium">Value:</span>
-                  <p>{(selectedApplication.estimatedValue / 1000000).toFixed(1)}M RWF</p>
+                  <span className="font-medium">Location:</span>
+                  <p className="leading-relaxed [&:not(:first-child)]:mt-6">{selectedApplication.location}</p>
                 </div>
               </div>
               
@@ -439,7 +426,6 @@ export function FinalDecisions() {
             <Button
               onClick={() => selectedApplication && handleFinalDecision(selectedApplication.id, decisionType!)}
               disabled={decisionType === "reject" && !decisionReason.trim()}
-              className={decisionType === "approve" ? "bg-green-600 hover:bg-green-700" : ""}
               variant={decisionType === "approve" ? "default" : "destructive"}
             >
               {decisionType === "approve" ? "Approve Application" : "Reject Application"}

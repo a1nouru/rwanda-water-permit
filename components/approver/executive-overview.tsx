@@ -108,7 +108,7 @@ export function ExecutiveOverview() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+          <h2 className="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20 [&+p]:!mt-4 *:[code]:text-2xl">
             Executive Overview
           </h2>
           <p className="text-muted-foreground">

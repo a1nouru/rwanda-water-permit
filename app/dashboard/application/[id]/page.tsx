@@ -7,240 +7,65 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Clock, Download, FileCheck, FileText } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, FileText, Calendar, User } from "lucide-react";
 import Link from "next/link";
+import { useApplications } from "@/hooks/useApplications";
+import type { Application } from "@/types/database";
 
 export default function ApplicationDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [application, setApplication] = useState<any>(null);
+  const [application, setApplication] = useState<Application | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { getApplication, loading } = useApplications();
   
   useEffect(() => {
-    // Simulate API call to fetch application details
     const fetchApplicationDetails = async () => {
-      setIsLoading(true);
-      
-      // Mock data - in a real app, this would be an API call
-      setTimeout(() => {
-        // Simulate different application data based on ID
+      try {
         const applicationId = params.id as string;
-        let mockApplication;
+        console.log('Fetching application details for ID:', applicationId);
         
-        if (applicationId === "APP-001") {
-          mockApplication = {
-            id: "APP-001",
-            title: "Water Permit Application",
-            date: "2023-10-12",
-            status: "pending",
-            type: "Commercial",
-            location: "Kigali, Gasabo",
-            permitType: "Water Extraction",
-            waterSource: "Groundwater",
-            purpose: "Commercial",
-            waterUsage: "150 m³/day",
-            timeline: [
-              { date: "2023-10-12", status: "Submitted", description: "Application submitted successfully" },
-              { date: "2023-10-14", status: "In Review", description: "Application is being reviewed by the authority" },
-            ],
-            documents: [
-              { name: "Payment Receipt", type: "pdf", size: "1.2 MB" },
-              { name: "Identification Document", type: "pdf", size: "0.8 MB" },
-              { name: "Land Ownership Certificate", type: "pdf", size: "1.5 MB" },
-              { name: "Technical Drawings", type: "pdf", size: "3.2 MB" },
-            ],
-          };
-        } else if (applicationId === "APP-002") {
-          mockApplication = {
-            id: "APP-002",
-            title: "Water Permit Renewal",
-            date: "2023-09-05",
-            status: "approved",
-            type: "Industrial",
-            location: "Musanze, Northern Province",
-            permitType: "Industrial Use",
-            waterSource: "River",
-            purpose: "Industrial",
-            waterUsage: "350 m³/day",
-            approvalDate: "2023-09-20",
-            validUntil: "2025-09-20",
-            permitNumber: "WP-2023-09-002",
-            timeline: [
-              { date: "2023-09-05", status: "Submitted", description: "Application submitted successfully" },
-              { date: "2023-09-10", status: "In Review", description: "Application is being reviewed by the authority" },
-              { date: "2023-09-18", status: "Final Assessment", description: "Final assessment in progress" },
-              { date: "2023-09-20", status: "Approved", description: "Application has been approved" },
-            ],
-            documents: [
-              { name: "Payment Receipt", type: "pdf", size: "1.2 MB" },
-              { name: "Previous Permit", type: "pdf", size: "0.9 MB" },
-              { name: "Technical Assessment", type: "pdf", size: "2.1 MB" },
-              { name: "Approved Permit", type: "pdf", size: "1.7 MB" },
-            ],
-          };
-        } else if (applicationId === "APP-003") {
-          mockApplication = {
-            id: "APP-003",
-            title: "Water Extraction Permit",
-            date: "2023-11-20",
-            status: "rejected",
-            type: "Agricultural",
-            location: "Nyagatare, Eastern Province",
-            permitType: "Irrigation",
-            waterSource: "Lake",
-            purpose: "Agricultural",
-            waterUsage: "500 m³/day",
-            rejectionDate: "2023-12-05",
-            rejectionReason: "Insufficient environmental impact assessment. The proposed extraction rate exceeds the sustainable yield for the water source in this area.",
-            timeline: [
-              { date: "2023-11-20", status: "Submitted", description: "Application submitted successfully" },
-              { date: "2023-11-25", status: "In Review", description: "Application is being reviewed by the authority" },
-              { date: "2023-12-01", status: "Technical Review", description: "Technical assessment in progress" },
-              { date: "2023-12-05", status: "Rejected", description: "Application has been rejected" },
-            ],
-            documents: [
-              { name: "Payment Receipt", type: "pdf", size: "1.2 MB" },
-              { name: "Identification Document", type: "pdf", size: "0.8 MB" },
-              { name: "Land Ownership Certificate", type: "pdf", size: "1.5 MB" },
-              { name: "Environmental Impact Assessment", type: "pdf", size: "4.2 MB" },
-              { name: "Rejection Notice", type: "pdf", size: "1.1 MB" },
-            ],
-          };
+        const app = await getApplication(applicationId);
+        if (app) {
+          setApplication(app);
+          console.log('✅ Application details loaded:', app);
         } else {
-          // Default generic application
-          mockApplication = {
-            id: applicationId,
-            title: "Water Permit Application",
-            date: "2023-10-12",
-            status: "pending",
-            type: "Unknown",
-            location: "Unknown",
-            permitType: "Water Extraction",
-            waterSource: "Unknown",
-            purpose: "Unknown",
-            waterUsage: "Unknown",
-            timeline: [
-              { date: "2023-10-12", status: "Submitted", description: "Application submitted successfully" },
-            ],
-            documents: [
-              { name: "Payment Receipt", type: "pdf", size: "1.2 MB" },
-            ],
-          };
+          setError('Application not found');
+          console.log('❌ Application not found for ID:', applicationId);
         }
-        
-        setApplication(mockApplication);
-        setIsLoading(false);
-      }, 1000);
+      } catch (err) {
+        console.error('❌ Error fetching application:', err);
+        setError('Failed to load application details');
+      }
     };
     
+    if (params.id) {
     fetchApplicationDetails();
-  }, [params.id]);
+    }
+  }, [params.id, getApplication]);
   
   // Function to render the correct status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "pending":
-        return <Badge variant="outline" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200">Pending</Badge>;
+      case "draft":
+        return <Badge variant="outline" className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-200">Draft</Badge>;
+      case "submitted":
+        return <Badge variant="outline" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200">Submitted</Badge>;
+      case "under_review":
+        return <Badge variant="outline" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200">Under Review</Badge>;
+      case "pending_inspection":
+        return <Badge variant="outline" className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200">Pending Inspection</Badge>;
       case "approved":
         return <Badge variant="outline" className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">Approved</Badge>;
       case "rejected":
         return <Badge variant="outline" className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200">Rejected</Badge>;
+      case "revision_required":
+        return <Badge variant="outline" className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-orange-200">Revision Required</Badge>;
+      case "cancelled":
+        return <Badge variant="outline" className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-200">Cancelled</Badge>;
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
-  };
-  
-  // Function to render status-specific details
-  const renderStatusDetails = () => {
-    if (!application) return null;
-    
-    if (application.status === "approved") {
-      return (
-        <Card className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="bg-green-100 dark:bg-green-800 p-2 rounded-full">
-                <FileCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-green-800 dark:text-green-400">Permit Approved</h3>
-                <p className="text-sm text-green-700 dark:text-green-500 mt-1">
-                  Your water permit has been approved and is valid until {application.validUntil}.
-                </p>
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Permit Number</p>
-                    <p className="font-medium">{application.permitNumber}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Approval Date</p>
-                    <p className="font-medium">{application.approvalDate}</p>
-                  </div>
-                </div>
-                <Button className="mt-4" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Permit
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    } else if (application.status === "rejected") {
-      return (
-        <Card className="bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="bg-red-100 dark:bg-red-800 p-2 rounded-full">
-                <FileText className="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-red-800 dark:text-red-400">Application Rejected</h3>
-                <p className="text-sm text-red-700 dark:text-red-500 mt-1">
-                  Your application was rejected on {application.rejectionDate}.
-                </p>
-                <div className="mt-4">
-                  <p className="text-xs text-muted-foreground">Reason for Rejection</p>
-                  <p className="text-sm mt-1">{application.rejectionReason}</p>
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Notice
-                  </Button>
-                  <Button size="sm">Reapply</Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    } else if (application.status === "pending") {
-      return (
-        <Card className="bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="bg-amber-100 dark:bg-amber-800 p-2 rounded-full">
-                <Clock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium text-amber-800 dark:text-amber-400">Application Under Review</h3>
-                <p className="text-sm text-amber-700 dark:text-amber-500 mt-1">
-                  Your application is currently being reviewed by our team. We will notify you of any updates.
-                </p>
-                <div className="mt-4">
-                  <p className="text-xs text-muted-foreground">Estimated Processing Time</p>
-                  <p className="font-medium">7-14 business days</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-    
-    return null;
   };
   
   // Format date to be more readable
@@ -252,14 +77,53 @@ export default function ApplicationDetailPage() {
     });
   };
   
-  if (isLoading) {
+  // Format application type for display
+  const formatApplicationType = (type: string) => {
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  // Helper function to extract coordinates from PostGIS data
+  const formatCoordinates = (coordinates: any) => {
+    try {
+      if (coordinates && typeof coordinates === 'object') {
+        // Handle PostGIS Point geometry
+        if (coordinates.type === 'Point' && coordinates.coordinates) {
+          const [lng, lat] = coordinates.coordinates;
+          return `${lat.toFixed(6)}°N, ${lng.toFixed(6)}°E`;
+        }
+      }
+      return JSON.stringify(coordinates);
+    } catch (error) {
+      return 'Invalid coordinates';
+    }
+  };
+
+  if (loading) {
     return (
       <DashboardLayout>
         <div className="container mx-auto px-4 py-6">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded w-1/4"></div>
-            <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded"></div>
-            <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded"></div>
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mr-2" />
+            <span>Loading application details...</span>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center py-12">
+            <h2 className="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20 [&+p]:!mt-4 *:[code]:text-2xl text-red-600 mb-4">Error</h2>
+            <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground mb-6">{error}</p>
+            <Link href="/dashboard">
+              <Button>Back to Dashboard</Button>
+            </Link>
           </div>
         </div>
       </DashboardLayout>
@@ -271,11 +135,13 @@ export default function ApplicationDetailPage() {
       <DashboardLayout>
         <div className="container mx-auto px-4 py-6">
           <div className="text-center py-12">
-            <h2 className="text-2xl font-bold">Application Not Found</h2>
-            <p className="text-muted-foreground mt-2">The application you are looking for does not exist or has been removed.</p>
-            <Button asChild className="mt-6">
-              <Link href="/dashboard">Back to Dashboard</Link>
-            </Button>
+            <h2 className="font-heading mt-12 scroll-m-28 text-2xl font-medium tracking-tight first:mt-0 lg:mt-20 [&+p]:!mt-4 *:[code]:text-2xl mb-4">Application Not Found</h2>
+            <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground mb-6">
+              Application not found. Please check the application ID and try again.
+            </p>
+            <Link href="/dashboard">
+              <Button>Back to Dashboard</Button>
+            </Link>
           </div>
         </div>
       </DashboardLayout>
@@ -289,7 +155,7 @@ export default function ApplicationDetailPage() {
           <Link href="/dashboard">
             <Button variant="ghost" className="gap-1">
               <ArrowLeft className="h-4 w-4" />
-              Back to Applications
+              Back to Dashboard
             </Button>
           </Link>
         </div>
@@ -298,121 +164,480 @@ export default function ApplicationDetailPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-6"
+          className="space-y-8"
         >
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">{application.title}</h1>
-              {getStatusBadge(application.status)}
+          {/* Application Header */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">{application.project_title}</h1>
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">
+                Application submitted on {formatDate(application.created_at)}
+              </p>
             </div>
-            <p className="text-muted-foreground">
-              Application ID: {application.id} • Submitted on {formatDate(application.date)}
-            </p>
+            <div className="flex flex-col gap-2 md:items-end">
+              {getStatusBadge(application.status)}
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-sm text-muted-foreground">
+                {`Application ID: ${application.id} • Status: ${application.status}`}
+              </p>
+            </div>
           </div>
           
-          {renderStatusDetails()}
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
+          {/* Application Details */}
+          <div className="grid gap-6 md:grid-cols-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Application Details</CardTitle>
-                  <CardDescription>Details of your water permit application</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Application Information
+                </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+              <CardContent className="space-y-4">
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Permit Type</dt>
-                      <dd className="mt-1">{application.permitType}</dd>
+                  <p className="text-sm text-muted-foreground">Application Type</p>
+                  <p className="font-medium">{formatApplicationType(application.application_type)}</p>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Water Source</dt>
-                      <dd className="mt-1">{application.waterSource}</dd>
+                  <p className="text-sm text-muted-foreground">Water Source</p>
+                  <p className="font-medium">{formatApplicationType(application.water_source)}</p>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Purpose</dt>
-                      <dd className="mt-1">{application.purpose}</dd>
+                  <p className="text-sm text-muted-foreground">Water Purpose</p>
+                  <p className="font-medium">{formatApplicationType(application.water_purpose)}</p>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Water Usage</dt>
-                      <dd className="mt-1">{application.waterUsage}</dd>
+                  <p className="text-sm text-muted-foreground">Usage</p>
+                  <p className="font-medium">
+                    {application.estimated_usage_volume} {application.usage_unit}
+                  </p>
                     </div>
+                {application.project_value && (
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Location</dt>
-                      <dd className="mt-1">{application.location}</dd>
+                    <p className="text-sm text-muted-foreground">Project Value</p>
+                    <p className="font-medium">RWF {application.project_value.toLocaleString()}</p>
                     </div>
-                  </dl>
+                )}
                 </CardContent>
               </Card>
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Timeline</CardTitle>
-                  <CardDescription>Application processing timeline</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Location Information
+                </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ol className="space-y-6">
-                    {application.timeline.map((event: any, index: number) => (
-                      <li key={index} className="relative flex gap-6">
-                        <div className="relative flex h-6 w-6 flex-none items-center justify-center">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-primary ring-offset-2"></div>
-                          {index !== application.timeline.length - 1 && (
-                            <div className="absolute left-2.5 top-3 h-full w-0.5 bg-gray-200 dark:bg-gray-800"></div>
-                          )}
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Province</p>
+                  <p className="font-medium">{application.province}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">District</p>
+                  <p className="font-medium">{application.district}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Sector</p>
+                  <p className="font-medium">{application.sector}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Cell</p>
+                  <p className="font-medium">{application.cell}</p>
+                </div>
+                                 {application.village && (
+                   <div>
+                     <p className="text-sm text-muted-foreground">Village</p>
+                     <p className="font-medium">{application.village}</p>
+                   </div>
+                 )}
+                 {application.coordinates && (
+                   <div>
+                     <p className="text-sm text-muted-foreground">GPS Coordinates</p>
+                     <p className="font-medium">
+                       {formatCoordinates(application.coordinates)}
+                     </p>
                         </div>
-                        <div className="flex-auto py-0.5 text-sm">
-                          <span className="font-medium text-gray-900 dark:text-white">{event.status}</span>
-                          <p className="text-muted-foreground">{event.description}</p>
-                          <time className="mt-1 text-xs text-muted-foreground">{event.date}</time>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
+                 )}
                 </CardContent>
               </Card>
             </div>
             
-            <div className="space-y-6">
+          {/* Project Description */}
+          {application.project_description && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Submitted Documents</CardTitle>
-                  <CardDescription>Documents attached to your application</CardDescription>
+                <CardTitle>Project Description</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-3">
-                    {application.documents.map((doc: any, index: number) => (
-                      <li key={index} className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <FileText className="h-5 w-5 text-muted-foreground mr-3" />
-                          <span>{doc.name}</span>
+                <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">{application.project_description}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Technical Details & Specifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle>🔧 Technical Information & Specifications</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {application.water_taking_method && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Water Taking Method</p>
+                  <p className="font-medium">{application.water_taking_method}</p>
+                </div>
+              )}
+              {application.water_measuring_method && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Water Measuring Method</p>
+                  <p className="font-medium">{application.water_measuring_method}</p>
+                </div>
+              )}
+              {application.storage_facilities && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Storage Facilities</p>
+                  <p className="font-medium">{application.storage_facilities}</p>
+                </div>
+              )}
+              {/* Enhanced Return Flow Description */}
+              {application.return_flow_description && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Return Flow & Duration Details</p>
+                  {application.return_flow_description.includes('|') ? (
+                    <div className="space-y-2 mt-2">
+                      {application.return_flow_description.split(' | ').map((detail, index) => {
+                        if (!detail.trim()) return null;
+                        const isStructured = detail.includes(':');
+                        return (
+                          <div key={index} className="pl-4 border-l-2 border-gray-200">
+                            {isStructured ? (
+                              <>
+                                <p className="text-xs text-muted-foreground font-medium">{detail.split(':')[0].trim()}</p>
+                                <p className="text-sm">{detail.split(':')[1]?.trim()}</p>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-xs text-muted-foreground font-medium">Quality Description</p>
+                                <p className="text-sm">{detail}</p>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="font-medium">{application.return_flow_description}</p>
+                  )}
+                </div>
+              )}
+              {application.environmental_assessment && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Environmental Assessment</p>
+                  <p className="font-medium">{application.environmental_assessment}</p>
+                </div>
+              )}
+              {application.mitigation_actions && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Mitigation Actions</p>
+                  <p className="font-medium">{application.mitigation_actions}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Enhanced Infrastructure Details */}
+          {(application.infrastructure_pipes || application.infrastructure_pumps || application.infrastructure_valves || application.infrastructure_meters) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>🏗️ Infrastructure Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {application.infrastructure_pipes && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Pipes & Piping System</p>
+                    <p className="font-medium">{application.infrastructure_pipes}</p>
+                  </div>
+                )}
+                {application.infrastructure_pumps && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Pumps & Pumping System</p>
+                    <p className="font-medium">{application.infrastructure_pumps}</p>
+                  </div>
+                )}
+                {application.infrastructure_valves && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Valves & Control Systems</p>
+                    {application.infrastructure_valves.includes('|') ? (
+                      <div className="space-y-2 mt-2">
+                        {application.infrastructure_valves.split(' | ').map((detail, index) => {
+                          if (!detail.trim()) return null;
+                          const isStructured = detail.includes(':');
+                          return (
+                            <div key={index} className="pl-4 border-l-2 border-blue-200">
+                              {isStructured ? (
+                                <>
+                                  <p className="text-xs text-muted-foreground font-medium">{detail.split(':')[0].trim()}</p>
+                                  <p className="text-sm">{detail.split(':')[1]?.trim()}</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-xs text-muted-foreground font-medium">Valve Details</p>
+                                  <p className="text-sm">{detail}</p>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="font-medium">{application.infrastructure_valves}</p>
+                    )}
+                  </div>
+                )}
+                {application.infrastructure_meters && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Meters & Measurement Devices</p>
+                    <p className="font-medium">{application.infrastructure_meters}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Application Metadata */}
+          {application.internal_notes && (
+            <Card>
+              <CardHeader>
+                <CardTitle>📋 Application Type & Metadata</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {application.internal_notes.split(' | ').map((note, index) => {
+                    const [label, value] = note.split(':');
+                    if (!label || !value) return null;
+                    return (
+                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-muted-foreground font-medium">{label.trim()}</p>
+                        <p className="font-semibold text-lg">{value.trim()}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Electricity Generation Details */}
+          {application.electricity_generation_capacity && (
+            <Card>
+              <CardHeader>
+                <CardTitle>⚡ Electricity Generation Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {application.electricity_generation_capacity.includes('|') ? (
+                  // Show structured data
+                  application.electricity_generation_capacity.split(' | ').map((detail, index) => {
+                    if (!detail.trim()) return null;
+                    const [label, value] = detail.split(':');
+                    if (!label || !value) {
+                      return (
+                        <div key={index}>
+                          <p className="text-sm text-muted-foreground">Capacity</p>
+                          <p className="font-medium">{detail.trim()}</p>
                         </div>
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <span className="mr-2">{doc.size}</span>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                            <Download className="h-4 w-4" />
-                            <span className="sr-only">Download</span>
-                          </Button>
+                      );
+                    }
+                    return (
+                      <div key={index}>
+                        <p className="text-sm text-muted-foreground">{label.trim()}</p>
+                        <p className="font-medium">{value.trim()}</p>
+                      </div>
+                    );
+                  })
+                ) : (
+                  // Show simple data
+                  <div>
+                    <p className="text-sm text-muted-foreground">Electricity Generation Capacity</p>
+                    <p className="font-medium">{application.electricity_generation_capacity}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Mining Operations Details */}
+          {application.mining_operations_type && (
+            <Card>
+              <CardHeader>
+                <CardTitle>⛏️ Mining Operations Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {application.mining_operations_type.includes('|') ? (
+                  // Show structured data
+                  application.mining_operations_type.split(' | ').map((detail, index) => {
+                    if (!detail.trim()) return null;
+                    const [label, value] = detail.split(':');
+                    if (!label || !value) {
+                      return (
+                        <div key={index}>
+                          <p className="text-sm text-muted-foreground">Mining Type</p>
+                          <p className="font-medium">{detail.trim()}</p>
                         </div>
-                      </li>
-                    ))}
-                  </ul>
+                      );
+                    }
+                    return (
+                      <div key={index}>
+                        <p className="text-sm text-muted-foreground">{label.trim()}</p>
+                        <p className="font-medium">{value.trim()}</p>
+                      </div>
+                    );
+                  })
+                ) : (
+                  // Show simple data
+                  <div>
+                    <p className="text-sm text-muted-foreground">Mining Operations Type</p>
+                    <p className="font-medium">{application.mining_operations_type}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Water Diversion Details */}
+          {application.water_diversion_details && (
+            <Card>
+              <CardHeader>
+                <CardTitle>🌊 Water Flow Diversion Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {application.water_diversion_details.includes('|') ? (
+                  // Show structured data in a grid layout for better readability
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {application.water_diversion_details.split(' | ').map((detail, index) => {
+                      if (!detail.trim()) return null;
+                      const [label, value] = detail.split(':');
+                      if (!label || !value) {
+                        return (
+                          <div key={index} className="col-span-full">
+                            <p className="text-sm text-muted-foreground">Water Diversion</p>
+                            <p className="font-medium">{detail.trim()}</p>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={index}>
+                          <p className="text-sm text-muted-foreground">{label.trim()}</p>
+                          <p className="font-medium">{value.trim()}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  // Show simple data
+                  <div>
+                    <p className="text-sm text-muted-foreground">Water Diversion Details</p>
+                    <p className="font-medium">{application.water_diversion_details}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Assignment & Processing Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Assignment & Processing Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {application.assigned_reviewer_id && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Assigned Reviewer ID</p>
+                  <p className="font-medium">{application.assigned_reviewer_id}</p>
+                </div>
+              )}
+              {application.assigned_inspector_id && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Assigned Inspector ID</p>
+                  <p className="font-medium">{application.assigned_inspector_id}</p>
+                </div>
+              )}
+              {application.assigned_approver_id && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Assigned Approver ID</p>
+                  <p className="font-medium">{application.assigned_approver_id}</p>
+                </div>
+              )}
+              {application.due_date && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Due Date</p>
+                  <p className="font-medium">{formatDate(application.due_date)}</p>
+                </div>
+              )}
+              {application.location_description && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Detailed Location Description</p>
+                  <p className="font-medium">{application.location_description}</p>
+                </div>
+              )}
                 </CardContent>
               </Card>
               
+          {/* Additional Notes */}
+          {application.revision_notes && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Need Help?</CardTitle>
-                  <CardDescription>Contact our support team</CardDescription>
+                <CardTitle>📝 Revision Notes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    If you have any questions or need assistance with your application, please contact our support team.
-                  </p>
-                  <Button className="w-full">Contact Support</Button>
+                <p className="font-medium">{application.revision_notes}</p>
                 </CardContent>
               </Card>
+          )}
+
+
+
+          {/* Status Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Status Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Current Status</p>
+                <div className="mt-1">{getStatusBadge(application.status)}</div>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">SLA Status</p>
+                <div className="mt-1">
+                  <Badge variant={application.sla_status === 'on_time' ? 'default' : 'destructive'}>
+                    {formatApplicationType(application.sla_status)}
+                  </Badge>
             </div>
           </div>
+              {application.submitted_at && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Submitted At</p>
+                  <p className="font-medium">{formatDate(application.submitted_at)}</p>
+                </div>
+              )}
+              {application.reviewed_at && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Reviewed At</p>
+                  <p className="font-medium">{formatDate(application.reviewed_at)}</p>
+                </div>
+              )}
+              {application.approved_at && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Approved At</p>
+                  <p className="font-medium">{formatDate(application.approved_at)}</p>
+                </div>
+              )}
+              {application.rejection_reason && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Rejection Reason</p>
+                  <p className="font-medium text-red-600">{application.rejection_reason}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </DashboardLayout>

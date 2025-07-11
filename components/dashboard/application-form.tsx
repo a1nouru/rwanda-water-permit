@@ -32,7 +32,8 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
-import { MapPin, Upload, X, FileText, Check } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { MapPin, Upload, X, FileText, Check, AlertCircle, XCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,7 +51,7 @@ const formSchema = z.object({
   applicantType: z.string({ required_error: "Please select an applicant type." }),
   waterSource: z.string({ required_error: "Please select a water source." }),
   purpose: z.string({ required_error: "Please select a purpose." }).min(1),
-  waterUsage: z.number().min(1, { message: "Water usage must be greater than 0." }),
+  waterUsage: z.coerce.number().min(1, { message: "Water usage must be greater than 0." }),
   waterUsageUnit: z.string().min(1, { message: "Please select a unit." }),
   
   // Industry-specific fields (conditional)
@@ -59,27 +60,27 @@ const formSchema = z.object({
   
   // Electricity Generation fields (conditional)
   powerGenerationType: z.string().optional(),
-  installedCapacity: z.number().optional(),
+  installedCapacity: z.coerce.number().optional(),
   turbineType: z.string().optional(),
-  headHeight: z.number().optional(),
+  headHeight: z.coerce.number().optional(),
   
   // Mining fields (conditional)
   miningType: z.string().optional(),
   miningMethod: z.string().optional(),
   mineralType: z.string().optional(),
-  miningArea: z.number().optional(),
+  miningArea: z.coerce.number().optional(),
   
   // Water Flow Diversion specific fields (conditional)
   intakeLocation: z.string().optional(),
-  intakeFlow: z.number().optional(),
+  intakeFlow: z.coerce.number().optional(),
   intakeLatitude: z.string().optional(),
   intakeLongitude: z.string().optional(),
-  intakeElevation: z.number().optional(),
+  intakeElevation: z.coerce.number().optional(),
   dischargeLocation: z.string().optional(),
-  dischargeFlow: z.number().optional(),
+  dischargeFlow: z.coerce.number().optional(),
   dischargeLatitude: z.string().optional(),
   dischargeLongitude: z.string().optional(),
-  dischargeElevation: z.number().optional(),
+  dischargeElevation: z.coerce.number().optional(),
   streamLevelVariations: z.string().optional(),
   diversionStructureConfig: z.string().optional(),
   
@@ -97,10 +98,10 @@ const formSchema = z.object({
   
   // Technical Details
   storageFacilities: z.string().optional(),
-  storageCapacity: z.number().optional(),
+  storageCapacity: z.coerce.number().optional(),
   waterTakingMethod: z.string({ required_error: "Method of water taking is required." }),
   waterMeasuringMethod: z.string({ required_error: "Method of measurement is required." }),
-  returnFlowQuantity: z.number().optional(),
+  returnFlowQuantity: z.coerce.number().optional(),
   returnFlowQuality: z.string().optional(),
   potentialEffects: z.string({ required_error: "Potential effects are required." }).min(20, { message: "Please describe the effects in at least 20 characters." }),
   mitigationActions: z.string({ required_error: "Mitigation actions are required." }).min(20, { message: "Please describe the actions in at least 20 characters." }),
@@ -108,7 +109,7 @@ const formSchema = z.object({
   
   // Pipes, materials, and fixtures
   pipeDetails: z.string().optional(),
-  pumpCapacity: z.number().optional(),
+  pumpCapacity: z.coerce.number().optional(),
   valveDetails: z.string().optional(),
   meterDetails: z.string().optional(),
   backflowControlDevices: z.string().optional(),
@@ -139,16 +140,32 @@ interface UserData {
 
 interface ApplicationFormProps {
   userData: UserData;
-  onSubmit: (data: FormValues) => void;
+  onSubmit: (data: FormValues, status: 'submitted') => void;
+  onSaveAsDraft: (data: FormValues, status: 'draft') => void;
   isLoading: boolean;
+  initialData?: Partial<FormValues>;
+  mode?: 'create' | 'edit';
 }
 
-export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFormProps) {
+export function ApplicationForm({ 
+  userData, 
+  onSubmit, 
+  onSaveAsDraft, 
+  isLoading, 
+  initialData, 
+  mode = 'create' 
+}: ApplicationFormProps) {
   const [activeTab, setActiveTab] = useState("personal");
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedPurpose, setSelectedPurpose] = useState("");
   const [selectedWaterTaking, setSelectedWaterTaking] = useState("");
+  const [validationError, setValidationError] = useState<{
+    show: boolean;
+    message: string;
+    missingFields: string[];
+    tab: string;
+  } | null>(null);
   const [files, setFiles] = useState<Record<string, File | null>>({
     paymentProof: null,
     identificationDoc: null,
@@ -167,19 +184,17 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
     intakeDischargeMap: useRef<HTMLInputElement>(null),
   };
   
-  // Initialize form with default values from user data
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      fullName: userData.name || "",
-      email: userData.email || "",
-      phone: userData.phone || "",
-      address: userData.address || "",
+  // Initialize form with default values from user data and merge with initial data if editing
+  const defaultValues = {
+    fullName: userData?.name || "",
+    email: userData?.email || "",
+    phone: userData?.phone || "",
+    address: userData?.address || "",
       permitType: "",
       applicantType: "",
       waterSource: "",
       purpose: "",
-      waterUsage: 0,
+    waterUsage: 1, // Default to 1 instead of 0 to avoid validation issues
       waterUsageUnit: "m3_per_day",
       province: "",
       district: "",
@@ -192,10 +207,10 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
       
       // Technical Details
       storageFacilities: "",
-      storageCapacity: 0,
+    storageCapacity: undefined, // Use undefined for optional numeric fields
       waterTakingMethod: "",
       waterMeasuringMethod: "",
-      returnFlowQuantity: 0,
+    returnFlowQuantity: undefined,
       returnFlowQuality: "",
       potentialEffects: "",
       mitigationActions: "",
@@ -205,37 +220,44 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
       industryType: "",
       industryDetails: "",
       powerGenerationType: "",
-      installedCapacity: 0,
+    installedCapacity: undefined,
       turbineType: "",
-      headHeight: 0,
+    headHeight: undefined,
       miningType: "",
       miningMethod: "",
       mineralType: "",
-      miningArea: 0,
+    miningArea: undefined,
       
       // Water Flow Diversion defaults
       intakeLocation: "",
-      intakeFlow: 0,
+    intakeFlow: undefined,
       intakeLatitude: "",
       intakeLongitude: "",
-      intakeElevation: 0,
+    intakeElevation: undefined,
       dischargeLocation: "",
-      dischargeFlow: 0,
+    dischargeFlow: undefined,
       dischargeLatitude: "",
       dischargeLongitude: "",
-      dischargeElevation: 0,
+    dischargeElevation: undefined,
       streamLevelVariations: "",
       diversionStructureConfig: "",
       
       // Pipes and fixtures
       pipeDetails: "",
-      pumpCapacity: 0,
+    pumpCapacity: undefined,
       valveDetails: "",
       meterDetails: "",
       backflowControlDevices: "",
 
       termsAccepted: false,
-    },
+  };
+
+  // Merge with initial data if editing
+  const mergedDefaultValues = initialData ? { ...defaultValues, ...initialData } : defaultValues;
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: mergedDefaultValues,
   });
 
   // Watch for purpose changes to show/hide conditional fields
@@ -254,6 +276,18 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
   useEffect(() => {
     setSelectedDistrict(watchedDistrict);
   }, [watchedDistrict]);
+
+  // Auto-dismiss error when user switches tabs (shows they're working on it)
+  useEffect(() => {
+    if (validationError?.show) {
+      // Auto-dismiss after 10 seconds, or when user actively changes tabs
+      const timer = setTimeout(() => {
+        setValidationError(null);
+      }, 10000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, validationError?.show]);
 
   // Helper function to check if industrial fields should be shown
   const shouldShowIndustryFields = () => {
@@ -302,29 +336,223 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
   };
   
   const handleFormSubmit = (values: FormValues) => {
+    // Clear any validation errors on successful submit
+    setValidationError(null);
+    
     // Add files to the form data
     const formData = {
       ...values,
       ...files,
     };
     
-    onSubmit(formData);
+    onSubmit(formData, 'submitted');
+  };
+
+  const handleSaveAsDraft = (values: FormValues) => {
+    // Clear any validation errors on successful save
+    setValidationError(null);
+    
+    // Add files to the form data
+    const formData = {
+      ...values,
+      ...files,
+    };
+    
+    onSaveAsDraft(formData, 'draft');
+  };
+
+  // Helper function to get user-friendly field names
+  const getFieldLabel = (fieldName: string): string => {
+    const fieldLabels: Record<string, string> = {
+      fullName: "Full Name",
+      email: "Email Address",
+      phone: "Phone Number",
+      address: "Address",
+      permitType: "Permit Type",
+      applicantType: "Applicant Type",
+      waterSource: "Water Source",
+      purpose: "Purpose",
+      waterUsage: "Water Usage Amount",
+      waterUsageUnit: "Water Usage Unit",
+      province: "Province",
+      district: "District",
+      sector: "Sector",
+      cell: "Cell",
+      latitude: "Latitude",
+      longitude: "Longitude",
+      projectTitle: "Project Title",
+      projectDescription: "Project Description",
+      storageFacilities: "Storage Facilities",
+      storageCapacity: "Storage Capacity",
+      waterTakingMethod: "Water Taking Method",
+      waterMeasuringMethod: "Water Measuring Method",
+      returnFlowQuantity: "Return Flow Quantity",
+      returnFlowQuality: "Return Flow Quality",
+      potentialEffects: "Potential Environmental Effects",
+      mitigationActions: "Mitigation Actions",
+      concessionDuration: "Concession Duration",
+      termsAccepted: "Terms and Conditions",
+      industryType: "Industry Type",
+      industryDetails: "Industry Details",
+      powerGenerationType: "Power Generation Type",
+      installedCapacity: "Installed Capacity",
+      turbineType: "Turbine Type",
+      headHeight: "Head Height",
+      miningType: "Mining Type",
+      miningMethod: "Mining Method",
+      mineralType: "Mineral Type",
+      miningArea: "Mining Area",
+      intakeLocation: "Intake Location",
+      intakeFlow: "Intake Flow",
+      intakeLatitude: "Intake Latitude",
+      intakeLongitude: "Intake Longitude",
+      intakeElevation: "Intake Elevation",
+      dischargeLocation: "Discharge Location",
+      dischargeFlow: "Discharge Flow",
+      dischargeLatitude: "Discharge Latitude",
+      dischargeLongitude: "Discharge Longitude",
+      dischargeElevation: "Discharge Elevation",
+      streamLevelVariations: "Stream Level Variations",
+      diversionStructureConfig: "Diversion Structure Configuration",
+      pipeDetails: "Pipe Details",
+      pumpCapacity: "Pump Capacity",
+      valveDetails: "Valve Details",
+      meterDetails: "Meter Details",
+      backflowControlDevices: "Backflow Control Devices"
+    };
+    return fieldLabels[fieldName] || fieldName;
+  };
+
+  const handleFormError = (errors: any) => {
+    console.log('Form validation errors:', errors);
+    
+    // Find which tab has the first error and switch to it
+    const errorFields = Object.keys(errors);
+    
+    if (errorFields.length > 0) {
+      // Personal info fields
+      const personalFields = ['fullName', 'email', 'phone', 'address'];
+      // Permit details fields
+      const detailsFields = ['permitType', 'applicantType', 'waterSource', 'purpose', 'waterUsage', 'waterUsageUnit', 'industryType', 'industryDetails', 'powerGenerationType', 'installedCapacity', 'turbineType', 'headHeight', 'miningType', 'miningMethod', 'mineralType', 'miningArea'];
+      // Location fields  
+      const locationFields = ['province', 'district', 'sector', 'cell', 'latitude', 'longitude'];
+      // Project fields
+      const projectFields = ['projectTitle', 'projectDescription'];
+      // Technical fields
+      const technicalFields = ['storageFacilities', 'storageCapacity', 'waterTakingMethod', 'waterMeasuringMethod', 'returnFlowQuantity', 'returnFlowQuality', 'potentialEffects', 'mitigationActions', 'concessionDuration', 'intakeLocation', 'intakeFlow', 'intakeLatitude', 'intakeLongitude', 'intakeElevation', 'dischargeLocation', 'dischargeFlow', 'dischargeLatitude', 'dischargeLongitude', 'dischargeElevation', 'streamLevelVariations', 'diversionStructureConfig', 'pipeDetails', 'pumpCapacity', 'valveDetails', 'meterDetails', 'backflowControlDevices'];
+      // Document fields
+      const documentFields = ['termsAccepted'];
+      
+      // Find errors in each tab
+      const personalErrors = errorFields.filter(field => personalFields.includes(field));
+      const detailsErrors = errorFields.filter(field => detailsFields.includes(field));
+      const locationErrors = errorFields.filter(field => locationFields.includes(field));
+      const projectErrors = errorFields.filter(field => projectFields.includes(field));
+      const technicalErrors = errorFields.filter(field => technicalFields.includes(field));
+      const documentErrors = errorFields.filter(field => documentFields.includes(field));
+      
+      let targetTab = 'personal';
+      let tabName = 'Personal Info';
+      let missingFields: string[] = [];
+      
+      // Determine which tab to show first (in order of form flow)
+      if (personalErrors.length > 0) {
+        targetTab = 'personal';
+        tabName = 'Personal Info';
+        missingFields = personalErrors.map(getFieldLabel);
+      } else if (detailsErrors.length > 0) {
+        targetTab = 'details';
+        tabName = 'Permit Details';
+        missingFields = detailsErrors.map(getFieldLabel);
+      } else if (locationErrors.length > 0) {
+        targetTab = 'location';
+        tabName = 'Location';
+        missingFields = locationErrors.map(getFieldLabel);
+      } else if (projectErrors.length > 0) {
+        targetTab = 'project';
+        tabName = 'Project Info';
+        missingFields = projectErrors.map(getFieldLabel);
+      } else if (technicalErrors.length > 0) {
+        targetTab = 'technical';
+        tabName = 'Technical Details';
+        missingFields = technicalErrors.map(getFieldLabel);
+      } else if (documentErrors.length > 0) {
+        targetTab = 'documents';
+        tabName = 'Documents & Terms';
+        missingFields = ['Accept terms and conditions'];
+      }
+      
+      // Set the error state for the banner
+      setValidationError({
+        show: true,
+        message: `Please complete the required fields in the ${tabName} tab`,
+        missingFields,
+        tab: tabName
+      });
+      
+      // Switch to the tab with errors
+      setActiveTab(targetTab);
+      
+      // Scroll to top to show the error banner
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
   
   const handleGetLocation = () => {
-    if (navigator.geolocation) {
+    if (!navigator.geolocation) {
+      setValidationError({
+        show: true,
+        message: "Location Service Not Available",
+        missingFields: ["Geolocation is not supported by this browser. Please enter coordinates manually."],
+        tab: "Location"
+      });
+      return;
+    }
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          form.setValue("latitude", position.coords.latitude.toString());
-          form.setValue("longitude", position.coords.longitude.toString());
+        const latitude = position.coords.latitude.toFixed(6);
+        const longitude = position.coords.longitude.toFixed(6);
+        form.setValue("latitude", latitude);
+        form.setValue("longitude", longitude);
+        
+        // Clear any existing error if location was successfully retrieved
+        if (validationError?.show) {
+          setValidationError(null);
+        }
         },
         (error) => {
-          console.error("Error getting location:", error);
+        let errorMessage = "Unable to get your location";
+        let details = "";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location Access Denied";
+            details = "Please allow location access or enter coordinates manually.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location Information Unavailable";
+            details = "Your location could not be determined. Please enter coordinates manually.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location Request Timed Out";
+            details = "The location request took too long. Please try again or enter coordinates manually.";
+            break;
         }
-      );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
-    }
+        
+        setValidationError({
+          show: true,
+          message: errorMessage,
+          missingFields: [details],
+          tab: "Location"
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
   };
   
   // District options based on province
@@ -890,8 +1118,48 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Beautiful Error Banner */}
+          {validationError?.show && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-6"
+            >
+              <Alert className="border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800">
+                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <AlertTitle className="text-red-800 dark:text-red-200 font-semibold">
+                  {validationError.message}
+                </AlertTitle>
+                <AlertDescription className="text-red-700 dark:text-red-300 mt-2">
+                  <div className="space-y-2">
+                    <p className="text-sm">
+                      Please complete the following required fields in the <strong>{validationError.tab}</strong> tab:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-sm ml-2">
+                      {validationError.missingFields.map((field, index) => (
+                        <li key={index} className="text-red-600 dark:text-red-400">
+                          {field}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setValidationError(null)}
+                    className="mt-3 h-8 text-red-700 hover:text-red-800 hover:bg-red-100 dark:text-red-300 dark:hover:text-red-200 dark:hover:bg-red-900"
+                  >
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Dismiss
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+          )}
+
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit, handleFormError)} className="space-y-6">
               <Tabs defaultValue="personal" value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-6">
                   <TabsTrigger value="personal">Personal Info</TabsTrigger>
@@ -2237,7 +2505,7 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
                           )}
                       </div>
                         <div className="text-xs text-muted-foreground space-y-1">
-                          <p className="font-medium">Required technical drawings include:</p>
+                          <p className="leading-relaxed [&:not(:first-child)]:mt-6 font-medium">Required technical drawings include:</p>
                           <ul className="list-disc list-inside space-y-0.5 ml-2">
                             <li>Site layout plan showing water source location</li>
                             <li>Water abstraction/intake structure design</li>
@@ -2319,7 +2587,7 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
                             )}
                         </div>
                           <div className="text-xs text-muted-foreground space-y-1">
-                            <p className="font-medium text-blue-700 dark:text-blue-300">Required for water flow diversion only:</p>
+                            <p className="leading-relaxed [&:not(:first-child)]:mt-6 font-medium text-blue-700 dark:text-blue-300">Required for water flow diversion only:</p>
                             <ul className="list-disc list-inside space-y-0.5 ml-2">
                               <li>Maps showing exact location of intake points</li>
                               <li>Maps showing discharge locations and routes</li>
@@ -2371,6 +2639,26 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
                     <Button type="button" variant="outline" onClick={() => setActiveTab("technical")} className="px-6">
                       Previous: Technical Details
                     </Button>
+                    <div className="flex gap-3">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        disabled={isLoading}
+                        onClick={form.handleSubmit(handleSaveAsDraft)}
+                        className="flex items-center gap-2 px-6"
+                      >
+                        {isLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="h-4 w-4" />
+                            Save as Draft
+                          </>
+                        )}
+                    </Button>
                     <Button type="submit" disabled={isLoading} className="flex items-center gap-2 px-6">
                       {isLoading ? (
                         <>
@@ -2384,6 +2672,7 @@ export function ApplicationForm({ userData, onSubmit, isLoading }: ApplicationFo
                         </>
                       )}
                     </Button>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>

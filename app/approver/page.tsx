@@ -15,12 +15,10 @@ import {
   FileCheck, 
   AlertTriangle,
   Shield,
-  Award,
   Scale
 } from "lucide-react";
 import { FinalDecisions } from "@/components/approver/final-decisions";
 import { ExecutiveOverview } from "@/components/approver/executive-overview";
-import { GovernanceManagement } from "@/components/approver/governance-management";
 import { PerformanceMetrics } from "@/components/approver/performance-metrics";
 
 interface DashboardStats {
@@ -52,35 +50,34 @@ export default function ApproverDashboard() {
         transition={{ duration: 0.3 }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-6">
           <div>
-            <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-center">
-              Rwanda Water Board
+            <h1 className="text-primary leading-tighter max-w-2xl text-4xl font-semibold tracking-tight text-balance lg:leading-[1.1] lg:font-semibold xl:text-5xl xl:tracking-tighter">
+              Executive Approver Dashboard
             </h1>
-            <p className="text-xl text-muted-foreground mt-2">
-              Chief Executive Dashboard
+            <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-muted-foreground">
+              Strategic oversight and final decision-making for water permit applications
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <div className="text-right">
-              <p className="text-sm font-medium">Executive Authority</p>
-              <p className="text-xs text-muted-foreground">Final Approval</p>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <span className="text-sm text-muted-foreground">System Online</span>
             </div>
           </div>
         </div>
 
         {/* Executive Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{mockStats.pendingFinalApproval}</div>
-              <p className="text-xs text-muted-foreground">
-                Awaiting your decision
+              <div className="text-2xl font-bold">{mockStats.pendingFinalApproval}</div>
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-xs text-muted-foreground">
+                Awaiting your review
               </p>
             </CardContent>
           </Card>
@@ -88,11 +85,11 @@ export default function ApproverDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Approved</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{mockStats.approvedThisMonth}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold">{mockStats.approvedThisMonth}</div>
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-xs text-muted-foreground">
                 This month
               </p>
             </CardContent>
@@ -101,12 +98,12 @@ export default function ApproverDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-              <XCircle className="h-4 w-4 text-red-600" />
+              <XCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{mockStats.rejectedThisMonth}</div>
-              <p className="text-xs text-muted-foreground">
-                This month
+              <div className="text-2xl font-bold">{mockStats.rejectedThisMonth}</div>
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-xs text-muted-foreground">
+                Past 7 days
               </p>
             </CardContent>
           </Card>
@@ -114,12 +111,12 @@ export default function ApproverDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Avg Decision</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-600" />
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{mockStats.avgDecisionTime}</div>
-              <p className="text-xs text-muted-foreground">
-                Days processing
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-xs text-muted-foreground">
+                Average processing
               </p>
             </CardContent>
           </Card>
@@ -127,37 +124,37 @@ export default function ApproverDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-              <FileCheck className="h-4 w-4 text-purple-600" />
+              <FileCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{mockStats.totalApplications}</div>
-              <p className="text-xs text-muted-foreground">
-                System wide
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-xs text-muted-foreground">
+                Success rate
               </p>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Compliance</CardTitle>
-              <Award className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{mockStats.complianceRate}%</div>
-              <p className="text-xs text-muted-foreground">
-                System compliance
-              </p>
-            </CardContent>
-          </Card>
+
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="decisions">Final Decisions</TabsTrigger>
-            <TabsTrigger value="overview">Executive Overview</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="governance">Governance</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 pt-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="decisions" className="flex items-center space-x-2">
+              <Scale className="h-4 w-4" />
+              <span className="hidden sm:inline">Final Decisions</span>
+              <span className="sm:hidden">Decisions</span>
+            </TabsTrigger>
+            <TabsTrigger value="overview" className="flex items-center space-x-2">
+              <TrendingUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Executive Overview</span>
+              <span className="sm:hidden">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Performance</span>
+              <span className="sm:hidden">Performance</span>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="decisions" className="space-y-6">
@@ -172,9 +169,7 @@ export default function ApproverDashboard() {
             <PerformanceMetrics />
           </TabsContent>
           
-          <TabsContent value="governance" className="space-y-6">
-            <GovernanceManagement />
-          </TabsContent>
+
         </Tabs>
       </motion.div>
     </div>

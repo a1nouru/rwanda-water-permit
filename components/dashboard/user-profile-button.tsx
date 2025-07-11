@@ -40,8 +40,8 @@ export function UserProfileButton() {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col space-y-1 leading-none">
-              <p className="font-medium">{user.name}</p>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 font-medium">{user.name}</p>
+              <p className="leading-relaxed [&:not(:first-child)]:mt-6 text-sm text-muted-foreground">{user.email}</p>
             </div>
           </div>
           <DropdownMenuSeparator />

@@ -1,0 +1,98 @@
+# =============================================
+# Rwanda Water Board - Supabase Configuration
+# Copy this file to .env.local and fill in your values
+# =============================================
+
+# Supabase Project Settings
+# Found in: Supabase Dashboard → Settings → API
+NEXT_PUBLIC_SUPABASE_URL=https://ovlsblmbiwcqtkssnbpv.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bHNibG1iaXdjcXRrc3NuYnB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxMzEzMDIsImV4cCI6MjA2NzcwNzMwMn0.4bAQ1lZ2571gYSFjq59h5CsnBGcu3qvKt4CS1a_eZpo
+
+# Supabase Service Role Key (Server-side only)
+# ⚠️  NEVER expose this in client-side code
+# Found in: Supabase Dashboard → Settings → API → service_role
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+
+# Direct Database Connection (Optional)
+# Found in: Supabase Dashboard → Settings → Database
+DATABASE_URL=your_supabase_database_url_here
+
+# =============================================
+# Application Configuration
+# =============================================
+
+# Environment
+NODE_ENV=development
+
+# App URL (for redirects, webhooks, etc.)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# =============================================
+# Optional: External Services
+# =============================================
+
+# Email Service (for notifications)
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASSWORD=
+FROM_EMAIL=noreply@rwb.gov.rw
+
+# SMS Service (for notifications)
+SMS_API_KEY=
+SMS_SENDER_ID=RWB
+
+# File Storage (if using external storage)
+AWS_REGION=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_S3_BUCKET=
+
+# =============================================
+# Security & Authentication
+# =============================================
+
+# JWT Secret (for additional security)
+JWT_SECRET=your_jwt_secret_here
+
+# Session Secret
+SESSION_SECRET=your_session_secret_here
+
+# CORS Origins (comma-separated)
+CORS_ORIGINS=http://localhost:3000,https://yourapp.com
+
+# =============================================
+# Development Tools
+# =============================================
+
+# Enable debug logging
+DEBUG=false
+
+# Database logging
+DATABASE_LOGGING=false
+
+# API Rate Limiting
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_WINDOW_MS=900000
+
+# =============================================
+# Rwanda-Specific Configuration
+# =============================================
+
+# Default timezone
+TZ=Africa/Kigali
+
+# Default language
+DEFAULT_LANGUAGE=en
+
+# Supported languages (comma-separated)
+SUPPORTED_LANGUAGES=en,fr,rw
+
+# Government Integration (if applicable)
+IREMBO_API_KEY=
+IREMBO_API_URL=
+
+# Payment Integration
+PAYMENT_GATEWAY_URL=
+PAYMENT_GATEWAY_KEY= 

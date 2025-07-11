@@ -17,8 +17,10 @@ export function PaymentNotice() {
           Payment Required
         </AlertTitle>
         <AlertDescription className="text-blue-700 dark:text-blue-400 mt-2">
-          <p>Please ensure that you have submitted your payment via IREMBO before proceeding with this application.</p>
-          <p className="mt-2">You will need to attach proof of payment along with your application documents during submission.</p>
+          <div className="space-y-4">
+            <p className="leading-relaxed [&:not(:first-child)]:mt-6">Please ensure that you have submitted your payment via IREMBO before proceeding with this application.</p>
+            <p className="leading-relaxed [&:not(:first-child)]:mt-6">You will need to attach proof of payment along with your application documents during submission.</p>
+          </div>
         </AlertDescription>
       </Alert>
     </motion.div>
